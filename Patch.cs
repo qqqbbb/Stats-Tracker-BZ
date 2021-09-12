@@ -1,15 +1,13 @@
 ﻿using HarmonyLib;
-using QModManager.Utility;
+//using QModManager.Utility;
 using System;
-//using SMLHelper.V2.Assets;
-using System.Linq;
-using System.Collections;
+//using System.Linq;
+//using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using SMLHelper.V2.Handlers;
-using System.Text;
-//using LitJson;
+//using System.Text;
 using static ErrorMessage;
 
 namespace Stats_Tracker
@@ -1787,8 +1785,8 @@ namespace Stats_Tracker
             public static void Postfix(string key, PDAEncyclopedia.Entry entry)
             {
                 //uGUI_ListEntry uGuiListEntry = item as uGUI_ListEntry;
-                AddDebug("Add " + key);
-                Main.Log("Add " + key);
+                //AddDebug("Add " + key);
+                //Main.Log("Add " + key);
             }
         }
 
@@ -1798,7 +1796,7 @@ namespace Stats_Tracker
             public static void Postfix(CraftNode node, bool verbose)
             {
                 //uGUI_ListEntry uGuiListEntry = item as uGUI_ListEntry;
-                AddDebug("Add " + node.id);
+                //AddDebug("Add " + node.id);
             }
         }
 
@@ -1824,7 +1822,7 @@ namespace Stats_Tracker
                 if (PDAScanner.onRemove == null)
                     return;
 
-                AddDebug("NotifyRemove " + entry.techType);
+                //AddDebug("NotifyRemove " + entry.techType);
             }
         }
 
