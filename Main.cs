@@ -8,13 +8,12 @@ using System.Collections.Generic;
 using static ErrorMessage;
 
 namespace Stats_Tracker
-{
+{	
     [QModCore]
     public class Main
     {
         public static Config config = new Config();
         public static bool setupDone = false;
-//internal static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
         public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Debug)
         {
@@ -28,7 +27,7 @@ namespace Stats_Tracker
             config.playerDeaths[saveSlot] = 0;
             config.timePlayed[saveSlot] = TimeSpan.Zero;
             config.healthLost[saveSlot] = 0;
-            config.foodEaten[saveSlot] = new Dictionary<TechType, float>();
+            config.foodEaten[saveSlot] = new Dictionary<string, float>();
             config.waterDrunk[saveSlot] = 0;
             config.distanceTraveled[saveSlot] = 0;
             config.maxDepth[saveSlot] = 0;
@@ -59,24 +58,25 @@ namespace Stats_Tracker
             config.objectsScanned[saveSlot] = 0;
             config.blueprintsUnlocked[saveSlot] = 0;
             config.blueprintsFromDatabox[saveSlot] = 0;
-            config.floraFound[saveSlot] = new HashSet<TechType>();
-            config.faunaFound[saveSlot] = new HashSet<TechType>();
-            config.leviathanFound[saveSlot] = new HashSet<TechType>();
-            config.coralFound[saveSlot] = new HashSet<TechType>();
-            config.animalsKilled[saveSlot] = new Dictionary<TechType, int>();
-            config.plantsKilled[saveSlot] = new Dictionary<TechType, int>();
-            config.coralKilled[saveSlot] = new Dictionary<TechType, int>();
-            config.leviathansKilled[saveSlot] = new Dictionary<TechType, int>();
-            config.plantsRaised[saveSlot] = new Dictionary<TechType, int>();
-            config.eggsHatched[saveSlot] = new Dictionary<TechType, int>();
-            config.itemsCrafted[saveSlot] = new Dictionary<TechType, int>();
-            config.craftingResourcesUsed[saveSlot] = new Dictionary<TechType, float>();
-            config.craftingResourcesUsed_[saveSlot] = new Dictionary<TechType, int>();
+            config.floraFound[saveSlot] = new HashSet<string>();
+            config.faunaFound[saveSlot] = new HashSet<string>();
+            config.leviathanFound[saveSlot] = new HashSet<string>();
+            config.coralFound[saveSlot] = new HashSet<string>();
+            config.animalsKilled[saveSlot] = new Dictionary<string, int>();
+            config.plantsKilled[saveSlot] = new Dictionary<string, int>();
+            config.coralKilled[saveSlot] = new Dictionary<string, int>();
+            config.leviathansKilled[saveSlot] = new Dictionary<string, int>();
+            config.plantsRaised[saveSlot] = new Dictionary<string, int>();
+            config.eggsHatched[saveSlot] = new Dictionary<string, int>();
+            config.itemsCrafted[saveSlot] = new Dictionary<string, int>();
+            config.craftingResourcesUsed[saveSlot] = new Dictionary<string, float>();
+            config.craftingResourcesUsed_[saveSlot] = new Dictionary<string, int>();
             config.biomesFound[saveSlot] = new HashSet<string>();
             config.jeweledDiskFound[saveSlot] = false;
-            config.storedBase[saveSlot] = new Dictionary<TechType, int>();
-            config.storedSeatruck[saveSlot] = new Dictionary<TechType, int>();
-            config.storedOutside[saveSlot] = new Dictionary<TechType, int>();
+            config.storedBase[saveSlot] = new Dictionary<string, int>();
+            config.storedLifePod[saveSlot] = new Dictionary<string, int>();
+            config.storedSeatruck[saveSlot] = new Dictionary<string, int>();
+            config.storedOutside[saveSlot] = new Dictionary<string, int>();
             config.seatrucksModulesBuilt[saveSlot] = 0;
             config.seatruckModulesLost[saveSlot] = 0;
             config.medkitsUsed[saveSlot] = 0;
@@ -129,9 +129,9 @@ namespace Stats_Tracker
         {
             //AddDebug("CleanUp");
             setupDone = false;
-            config.Load();
             Stats_Patch.powerRelays = new HashSet<PowerRelay>();
             Stats_Patch.timeLastUpdate = TimeSpan.Zero;
+            config.Load();
         }
 
         [QModPatch]

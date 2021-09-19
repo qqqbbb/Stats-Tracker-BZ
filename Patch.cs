@@ -7,23 +7,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using SMLHelper.V2.Handlers;
-//using System.Text;
 using static ErrorMessage;
 
 namespace Stats_Tracker
 {
     internal class Stats_Patch
     {
-        static SeaTruckSegment destroyedSS = null;
+        static SeaTruckSegment destroyedSTS = null;
         static bool removeIngredient = false;
         static bool constructing = false;
         static bool finishedCrafting = false;
         static LiveMixin killedLM;
         public static string saveSlot;
         public static CraftNode lastEncNode;
-        //public static bool drivingSub;
         public static Dictionary<string, PDAEncyclopedia.EntryData> mapping;
-        //static List<Base.CellType> baseRooms = new List<Base.CellType> { Base.CellType.Room, Base.CellType.Observatory, Base.CellType.MoonpoolRotated, Base.CellType.Moonpool, Base.CellType.MapRoomRotated, Base.CellType.MapRoom, Base.CellType.LargeRoomRotated, Base.CellType.LargeRoom, Base.CellType.ControlRoomRotated, Base.CellType.ControlRoom };
         public static List <TechType> roomTypes = new List<TechType> { TechType.BaseRoom, TechType.BaseLargeRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseControlRoom, TechType.BaseLargeGlassDome, TechType.BaseGlassDome};
         public static List<TechType> corridorTypes = new List<TechType> { TechType.BaseCorridorI, TechType.BaseCorridorL, TechType.BaseCorridorT, TechType.BaseCorridorX, TechType.BaseCorridorGlassI, TechType.BaseCorridorGlassL, TechType.BaseCorridor, TechType.BaseCorridorGlass, TechType.BaseCorridor};
         public static List<TechType> fauna = new List<TechType> { TechType.Brinewing, TechType.BruteShark, TechType.Cryptosuchus, TechType.NootFish, TechType.Penguin, TechType.PenguinBaby, TechType.Crash, TechType.Pinnacarid, TechType.RockPuncher, TechType.SnowStalker, TechType.SnowStalkerBaby, TechType.SpikeyTrap, TechType.Bladderfish, TechType.Boomerang, TechType.SquidShark, TechType.Symbiote, TechType.ArcticPeeper, TechType.ArcticRay, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Hoopfish, TechType.Jellyfish, TechType.HivePlant, TechType.LilyPaddler, TechType.SeaMonkey, TechType.SeaMonkeyBaby, TechType.SpinnerFish, TechType.TitanHolefish, TechType.Skyray, TechType.Triops, TechType.Spinefish, TechType.BlueAmoeba, TechType.TrivalveBlue, TechType.TrivalveYellow };
@@ -348,21 +345,54 @@ namespace Stats_Tracker
             }
         }
         static bool introCinRunning = false;
-
-        public static string GetCraftingResourcesUsedTotal(TechType tt)
+        static int storedLifePod
         {
-            if (Main.config.craftingResourcesUsedTotal.ContainsKey(tt))
-                return Language.main.Get(tt.AsString()) + " " + Main.config.craftingResourcesUsedTotal_[tt] + ", " + Main.config.craftingResourcesUsedTotal[tt].ToString("0.0") + " kg";
-            else
-                return Language.main.Get(tt.AsString()) + " " + Main.config.craftingResourcesUsedTotal_[tt];
+            get
+            {
+                int total = 0;
+                foreach (var kv in Main.config.storedLifePod[saveSlot])
+                    total += kv.Value;
+
+                return total;
+            }
+        }
+        static int storedBase
+        {
+            get
+            {
+                int total = 0;
+                foreach (var kv in Main.config.storedBase[saveSlot])
+                    total += kv.Value;
+
+                return total;
+            }
+        }
+        static int storedOutside
+        {
+            get
+            {
+                int total = 0;
+                foreach (var kv in Main.config.storedOutside[saveSlot])
+                    total += kv.Value;
+
+                return total;
+            }
         }
 
-        public static string GetCraftingResourcesUsed(TechType tt)
+        public static string GetCraftingResourcesUsedTotal(string str)
         {
-            if (Main.config.craftingResourcesUsed[saveSlot].ContainsKey(tt))
-                return Language.main.Get(tt.AsString()) + " " + Main.config.craftingResourcesUsed_[saveSlot][tt] + ", " + Main.config.craftingResourcesUsed[saveSlot][tt].ToString("0.0") + " kg";
+            if (Main.config.craftingResourcesUsedTotal.ContainsKey(str))
+                return Language.main.Get(str) + " " + Main.config.craftingResourcesUsedTotal_[str] + ", " + Main.config.craftingResourcesUsedTotal[str].ToString("0.0") + " kg";
             else
-                return Language.main.Get(tt.AsString()) + " " + Main.config.craftingResourcesUsed_[saveSlot][tt];
+                return Language.main.Get(str) + " " + Main.config.craftingResourcesUsedTotal_[str];
+        }
+
+        public static string GetCraftingResourcesUsed(string str)
+        {
+            if (Main.config.craftingResourcesUsed[saveSlot].ContainsKey(str))
+                return Language.main.Get(str) + " " + Main.config.craftingResourcesUsed_[saveSlot][str] + ", " + Main.config.craftingResourcesUsed[saveSlot][str].ToString("0.0") + " kg";
+            else
+                return Language.main.Get(str) + " " + Main.config.craftingResourcesUsed_[saveSlot][str];
         }
 
         public static string GetBiomeName(string name)
@@ -550,11 +580,7 @@ namespace Stats_Tracker
                         result += "\n\nWater drunk: " + Main.config.waterDrunk[saveSlot] + " liters.";
                         result += "\nFood eaten: " + foodEaten + " kg.";
                         foreach (var kv in Main.config.foodEaten[saveSlot])
-                        {
-                            if (kv.Key == TechType.None)
-                                continue;
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value + " kg.";
-                        }
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value + " kg.";
                     }
                   
                     if (Main.config.baseRoomsBuilt[saveSlot] > 0 || Main.config.baseCorridorsBuilt[saveSlot] > 0)
@@ -578,95 +604,78 @@ namespace Stats_Tracker
                     if (plantsKilled > 0)
                         result += "\n\nPlants killed: " + plantsKilled;
                     foreach (var kv in Main.config.plantsKilled[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                 
                     if (animalsKilled > 0)
                         result += "\n\nAnimals killed: " + animalsKilled;
                     foreach (var kv in Main.config.animalsKilled[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     if (coralKilled > 0)
                         result += "\n\nCorals killed: " + coralKilled;
                     foreach (var kv in Main.config.coralKilled[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     if (leviathansKilled > 0)
                         result += "\n\nLeviathans killed: " + leviathansKilled;
                     foreach (var kv in Main.config.leviathansKilled[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
    
                     result += "\n\nItems crafted: " + itemsCrafted;
                     foreach (var kv in Main.config.itemsCrafted[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nResources used for crafting and constructing: " + craftingResourcesUsed.ToString("0.0") + " kg";
                     foreach (var kv in Main.config.craftingResourcesUsed_[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
                         result += "\n      " + GetCraftingResourcesUsed(kv.Key);
-                    }
 
                     if (plantsRaised > 0)
                         result += "\n\nPlants raised: " + plantsRaised;
                     foreach (var kv in Main.config.plantsRaised[saveSlot])
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
       
                     if (eggsHatched > 0)
                     {
                         result += "\n\nEggs hatched in AC: " + eggsHatched;
                         foreach (var kv in Main.config.eggsHatched[saveSlot])
-                        {
-                            if (kv.Key == TechType.None)
-                                continue;
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                        }
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                     }
 
-                    result += "\n\nThings stored in your bases: ";
-                    foreach (var kv in Main.config.storedBase[saveSlot])
+                    if (storedLifePod > 0)
                     {
-                        if (kv.Key != TechType.None && kv.Value > 0)
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                        result += "\n\nThings stored in your drop pod: ";
+                        foreach (var kv in Main.config.storedLifePod[saveSlot])
+                        {
+                            if (kv.Value > 0)
+                                result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
+                        }
+                    }
+                    if (storedBase > 0)
+                    {
+                        result += "\n\nThings stored in your bases: ";
+                        foreach (var kv in Main.config.storedBase[saveSlot])
+                        {
+                            if (kv.Value > 0)
+                                result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
+                        }
                     }
                     if (Main.config.seatrucksBuilt[saveSlot] > 0)
                     {
                         result += "\n\nThings stored in seatruck: ";
                         foreach (var kv in Main.config.storedSeatruck[saveSlot])
                         {
-                            if (kv.Key != TechType.None && kv.Value > 0)
-                                result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                            if (kv.Value > 0)
+                                result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                         }
                     }
-                    result += "\n\nThings stored outside your bases: ";
-                    foreach (var kv in Main.config.storedOutside[saveSlot])
+                    if (storedOutside > 0)
                     {
-                        if (kv.Key != TechType.None && kv.Value > 0)
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                        result += "\n\nThings stored outside your bases: ";
+                        foreach (var kv in Main.config.storedOutside[saveSlot])
+                        {
+                            if (kv.Value > 0)
+                                result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
+                        }
                     }
 
                     result += "\n\nBiomes discovered:";
@@ -675,39 +684,23 @@ namespace Stats_Tracker
 
                     if (Main.config.faunaFound[saveSlot].Count > 0)
                         result += "\n\nFauna species discovered: ";
-                    foreach (TechType tt in Main.config.faunaFound[saveSlot])
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.faunaFound[saveSlot])
+                        result += "\n      " + Language.main.Get(name);
         
                     if (Main.config.floraFound[saveSlot].Count > 0)
                         result += "\n\nFlora species discovered: ";
-                    foreach (TechType tt in Main.config.floraFound[saveSlot])
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.floraFound[saveSlot])
+                        result += "\n      " + Language.main.Get(name);
 
                     if (Main.config.coralFound[saveSlot].Count > 0)
                         result += "\n\nCoral species discovered: ";
-                    foreach (TechType tt in Main.config.coralFound[saveSlot])
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.coralFound[saveSlot])
+                        result += "\n      " + Language.main.Get(name);
 
                     if (Main.config.leviathanFound[saveSlot].Count > 0)
                         result += "\n\nLeviathan species discovered: ";
-                    foreach (TechType tt in Main.config.leviathanFound[saveSlot])
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.leviathanFound[saveSlot])
+                        result += "\n      " + Language.main.Get(name);
                 }
 
                 else if (key == "EncyDesc_StatsGlobal")
@@ -752,11 +745,7 @@ namespace Stats_Tracker
                     result += "\n\nWater drunk: " + Main.config.waterDrunkTotal + " liters.";
                     result += "\nFood eaten: " + foodEatenTotal + " kg.";
                     foreach (var kv in Main.config.foodEatenTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value + " kg.";
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value + " kg.";
               
                     result += "\n\nTotal power generated for your bases: " + basePowerTotal;
                     result += "\nBase corridor segments built: " + Main.config.baseCorridorsBuiltTotal;
@@ -770,121 +759,79 @@ namespace Stats_Tracker
                
                     result += "\n\nPlants killed: " + plantsKilledTotal;
                     foreach (var kv in Main.config.plantsKilledTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nAnimals killed: " + animalsKilledTotal;
                     foreach (var kv in Main.config.animalsKilledTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nCorals killed: " + coralKilledTotal;
                     foreach (var kv in Main.config.coralKilledTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nLeviathans killed: " + leviathansKilledTotal;
                     foreach (var kv in Main.config.leviathansKilledTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nItems crafted: " + itemsCraftedTotal;
                     foreach (var kv in Main.config.itemsCraftedTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nResources used for crafting and constructing: " + craftingResourcesUsedTotal.ToString("0.0") + " kg";
                     foreach (var kv in Main.config.craftingResourcesUsedTotal_)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
                         result += "\n      " + GetCraftingResourcesUsedTotal(kv.Key);
-                    }
 
                     result += "\n\nPlants raised: " + plantsRaisedTotal;
                     foreach (var kv in Main.config.plantsRaisedTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
                     result += "\n\nEggs hatched in AC: " + eggsHatchedTotal;
                     foreach (var kv in Main.config.eggsHatchedTotal)
-                    {
-                        if (kv.Key == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-                    }
+                        result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
 
+                    result += "\n\nThings stored in your drop pods: ";
+                    foreach (var kv in Main.config.storedLifePodTotal)
+                    {
+                        if (kv.Value > 0)
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
+                    }
                     result += "\n\nThings stored in your bases: ";
                     foreach (var kv in Main.config.storedBaseTotal)
                     {
-                        if (kv.Key != TechType.None && kv.Value > 0)
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                        if (kv.Value > 0)
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                     }
-                    result += "\n\nThings stored in seatruck: ";
+                    result += "\n\nThings stored in seatrucks: ";
                     foreach (var kv in Main.config.storedSeatruckTotal)
                     {
-                        if (kv.Key != TechType.None && kv.Value > 0)
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                        if (kv.Value > 0)
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                     }
                     result += "\n\nThings stored outside your bases: ";
                     foreach (var kv in Main.config.storedOutsideTotal)
                     {
-                        if (kv.Key != TechType.None && kv.Value > 0)
-                            result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
+                        if (kv.Value > 0)
+                            result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
                     }
                     result += "\n\nBiomes discovered:";
                     foreach (string biome in Main.config.biomesFoundGlobal)
                         result += "\n      " + biome;
 
                     result += "\n\nFauna species discovered: ";
-                    foreach (TechType tt in Main.config.faunaFoundTotal)
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.faunaFoundTotal)
+                        result += "\n      " + Language.main.Get(name);
     
                     result += "\n\nFlora species discovered: ";
-                    foreach (TechType tt in Main.config.floraFoundTotal)
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.floraFoundTotal)
+                        result += "\n      " + Language.main.Get(name);
 
                     result += "\n\nCoral species discovered: ";
-                    foreach (TechType tt in Main.config.coralFoundTotal)
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.coralFoundTotal)
+                        result += "\n      " + Language.main.Get(name);
 
                     result += "\n\nLeviathan species discovered: ";
-                    foreach (TechType tt in Main.config.leviathanFoundTotal)
-                    {
-                        if (tt == TechType.None)
-                            continue;
-                        result += "\n      " + Language.main.Get(tt.AsString());
-                    }
+                    foreach (string name in Main.config.leviathanFoundTotal)
+                        result += "\n      " + Language.main.Get(name);
                 }
             }
         }
@@ -961,18 +908,19 @@ namespace Stats_Tracker
                     {
                         float foodValue = eatable.GetFoodValue();
                         float waterValue = eatable.GetWaterValue();
-                        TechType tt = CraftData.GetTechType(useObj);
+                        string name = CraftData.GetTechType(useObj).AsString();
+
                         if (foodValue >= waterValue)
                         {
-                            if (Main.config.foodEaten[saveSlot].ContainsKey(tt))
-                                Main.config.foodEaten[saveSlot][tt] += rb.mass;
+                            if (Main.config.foodEaten[saveSlot].ContainsKey(name))
+                                Main.config.foodEaten[saveSlot][name] += rb.mass;
                             else
-                                Main.config.foodEaten[saveSlot][tt] = rb.mass;
+                                Main.config.foodEaten[saveSlot][name] = rb.mass;
 
-                            if (Main.config.foodEatenTotal.ContainsKey(tt))
-                                Main.config.foodEatenTotal[tt] += rb.mass;
+                            if (Main.config.foodEatenTotal.ContainsKey(name))
+                                Main.config.foodEatenTotal[name] += rb.mass;
                             else
-                                Main.config.foodEatenTotal[tt] = rb.mass;
+                                Main.config.foodEatenTotal[name] = rb.mass;
                         }
                         else if (waterValue > foodValue)
                         {
@@ -1123,15 +1071,17 @@ namespace Stats_Tracker
                 if (__instance.creatureType == TechType.None)
                     return;
 
-                if (Main.config.eggsHatchedTotal.ContainsKey(__instance.creatureType))
-                    Main.config.eggsHatchedTotal[__instance.creatureType]++;
-                else
-                    Main.config.eggsHatchedTotal[__instance.creatureType] = 1;
+                string name = __instance.creatureType.AsString();
 
-                if (Main.config.eggsHatched[saveSlot].ContainsKey(__instance.creatureType))
-                    Main.config.eggsHatched[saveSlot][__instance.creatureType]++;
+                if (Main.config.eggsHatchedTotal.ContainsKey(name))
+                    Main.config.eggsHatchedTotal[name]++;
                 else
-                    Main.config.eggsHatched[saveSlot][__instance.creatureType] = 1;
+                    Main.config.eggsHatchedTotal[name] = 1;
+
+                if (Main.config.eggsHatched[saveSlot].ContainsKey(name))
+                    Main.config.eggsHatched[saveSlot][name]++;
+                else
+                    Main.config.eggsHatched[saveSlot][name] = 1;
             }
         }
 
@@ -1148,15 +1098,17 @@ namespace Stats_Tracker
                 if (tt == TechType.None)
                     return;
 
-                if (Main.config.plantsRaisedTotal.ContainsKey(tt))
-                    Main.config.plantsRaisedTotal[tt]++;
-                else
-                    Main.config.plantsRaisedTotal[tt] = 1;
+                string name = tt.AsString();
 
-                if (Main.config.plantsRaised[saveSlot].ContainsKey(tt))
-                    Main.config.plantsRaised[saveSlot][tt]++;
+                if (Main.config.plantsRaisedTotal.ContainsKey(name))
+                    Main.config.plantsRaisedTotal[name]++;
                 else
-                    Main.config.plantsRaised[saveSlot][tt] = 1;
+                    Main.config.plantsRaisedTotal[name] = 1;
+
+                if (Main.config.plantsRaised[saveSlot].ContainsKey(name))
+                    Main.config.plantsRaised[saveSlot][name]++;
+                else
+                    Main.config.plantsRaised[saveSlot][name] = 1;
             }
         }
 
@@ -1176,7 +1128,7 @@ namespace Stats_Tracker
         { // Tweaks&Fixes overwrites TakeDamage so cant use Prefix
             public static void Postfix(LiveMixin __instance, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
-                if (dealer && killedLM && __instance == killedLM && __instance.health <= 0f)
+                if (dealer && killedLM && __instance == killedLM)
                 {
                     if (dealer == Player.main.gameObject || dealer.GetComponent<SeaTruckSegment>())
                     {
@@ -1184,57 +1136,59 @@ namespace Stats_Tracker
                         if (tt == TechType.None)
                             return;
                         //AddDebug(tt + " killed by player");
+                        string name = tt.AsString();
+
                         if (fauna.Contains(tt))
                         {
                             //AddDebug(tt + " animal killed by player");
-                            if (Main.config.animalsKilledTotal.ContainsKey(tt))
-                                Main.config.animalsKilledTotal[tt]++;
+                            if (Main.config.animalsKilledTotal.ContainsKey(name))
+                                Main.config.animalsKilledTotal[name]++;
                             else
-                                Main.config.animalsKilledTotal[tt] = 1;
+                                Main.config.animalsKilledTotal[name] = 1;
 
-                            if (Main.config.animalsKilled[saveSlot].ContainsKey(tt))
-                                Main.config.animalsKilled[saveSlot][tt]++;
+                            if (Main.config.animalsKilled[saveSlot].ContainsKey(name))
+                                Main.config.animalsKilled[saveSlot][name]++;
                             else
-                                Main.config.animalsKilled[saveSlot][tt] = 1;
+                                Main.config.animalsKilled[saveSlot][name] = 1;
                         }
                         else if (flora.Contains(tt))
                         {
                             //AddDebug(tt + " plant killed by player");
-                            if (Main.config.plantsKilledTotal.ContainsKey(tt))
-                                Main.config.plantsKilledTotal[tt]++;
+                            if (Main.config.plantsKilledTotal.ContainsKey(name))
+                                Main.config.plantsKilledTotal[name]++;
                             else
-                                Main.config.plantsKilledTotal[tt] = 1;
+                                Main.config.plantsKilledTotal[name] = 1;
 
-                            if (Main.config.plantsKilled[saveSlot].ContainsKey(tt))
-                                Main.config.plantsKilled[saveSlot][tt]++;
+                            if (Main.config.plantsKilled[saveSlot].ContainsKey(name))
+                                Main.config.plantsKilled[saveSlot][name]++;
                             else
-                                Main.config.plantsKilled[saveSlot][tt] = 1;
+                                Main.config.plantsKilled[saveSlot][name] = 1;
                         }
                         else if (coral.Contains(tt))
                         {
                             //AddDebug(tt + " coral killed by player");
-                            if (Main.config.coralKilledTotal.ContainsKey(tt))
-                                Main.config.coralKilledTotal[tt]++;
+                            if (Main.config.coralKilledTotal.ContainsKey(name))
+                                Main.config.coralKilledTotal[name]++;
                             else
-                                Main.config.coralKilledTotal[tt] = 1;
+                                Main.config.coralKilledTotal[name] = 1;
 
-                            if (Main.config.coralKilled[saveSlot].ContainsKey(tt))
-                                Main.config.coralKilled[saveSlot][tt]++;
+                            if (Main.config.coralKilled[saveSlot].ContainsKey(name))
+                                Main.config.coralKilled[saveSlot][name]++;
                             else
-                                Main.config.coralKilled[saveSlot][tt] = 1;
+                                Main.config.coralKilled[saveSlot][name] = 1;
                         }
                         else if (leviathans.Contains(tt))
                         {
                             //AddDebug(tt + " leviathan killed by player");
-                            if (Main.config.leviathansKilled[saveSlot].ContainsKey(tt))
-                                Main.config.leviathansKilled[saveSlot][tt]++;
+                            if (Main.config.leviathansKilled[saveSlot].ContainsKey(name))
+                                Main.config.leviathansKilled[saveSlot][name]++;
                             else
-                                Main.config.leviathansKilled[saveSlot][tt] = 1;
+                                Main.config.leviathansKilled[saveSlot][name] = 1;
 
-                            if (Main.config.leviathansKilledTotal.ContainsKey(tt))
-                                Main.config.leviathansKilledTotal[tt]++;
+                            if (Main.config.leviathansKilledTotal.ContainsKey(name))
+                                Main.config.leviathansKilledTotal[name]++;
                             else
-                                Main.config.leviathansKilledTotal[tt] = 1;
+                                Main.config.leviathansKilledTotal[name] = 1;
                         }
                     }
                 }
@@ -1269,62 +1223,81 @@ namespace Stats_Tracker
                     LiveMixin liveMixin = item.item.GetComponent<LiveMixin>();
                     Rigidbody rb = item.item.GetComponent<Rigidbody>();
                     TechType tt = item.item.GetTechType();
-
+                    string name = tt.AsString();
                     bool alive = liveMixin && liveMixin.IsAlive();
+
                     if (alive || liveMixin == null)
                     { // cooking fish
                         if (fauna.Contains(tt))
                         {
                             //AddDebug(tt + " animal killed by player");
-                            if (Main.config.animalsKilledTotal.ContainsKey(tt))
-                                Main.config.animalsKilledTotal[tt]++;
-                            else
-                                Main.config.animalsKilledTotal[tt] = 1;
 
-                            if (Main.config.animalsKilled[saveSlot].ContainsKey(tt))
-                                Main.config.animalsKilled[saveSlot][tt]++;
+                            if (Main.config.animalsKilledTotal.ContainsKey(name))
+                                Main.config.animalsKilledTotal[name]++;
                             else
-                                Main.config.animalsKilled[saveSlot][tt] = 1;
+                                Main.config.animalsKilledTotal[name] = 1;
+
+                            if (Main.config.animalsKilled[saveSlot].ContainsKey(name))
+                                Main.config.animalsKilled[saveSlot][name]++;
+                            else
+                                Main.config.animalsKilled[saveSlot][name] = 1;
                         }
                         else if (flora.Contains(tt))
                         {
                             //AddDebug(tt + " plant killed by player");
-                            if (Main.config.plantsKilledTotal.ContainsKey(tt))
-                                Main.config.plantsKilledTotal[tt]++;
+                            if (Main.config.plantsKilledTotal.ContainsKey(name))
+                                Main.config.plantsKilledTotal[name]++;
                             else
-                                Main.config.plantsKilledTotal[tt] = 1;
+                                Main.config.plantsKilledTotal[name] = 1;
 
-                            if (Main.config.plantsKilled[saveSlot].ContainsKey(tt))
-                                Main.config.plantsKilled[saveSlot][tt]++;
+                            if (Main.config.plantsKilled[saveSlot].ContainsKey(name))
+                                Main.config.plantsKilled[saveSlot][name]++;
                             else
-                                Main.config.plantsKilled[saveSlot][tt] = 1;
+                                Main.config.plantsKilled[saveSlot][name] = 1;
                         }
                     }
                     if (item.item.GetComponent<Eatable>())
                         return;
 
-                    if (Main.config.craftingResourcesUsed_[saveSlot].ContainsKey(tt))
-                        Main.config.craftingResourcesUsed_[saveSlot][tt]++;
+                    if (Main.config.craftingResourcesUsed_[saveSlot].ContainsKey(name))
+                        Main.config.craftingResourcesUsed_[saveSlot][name]++;
                     else
-                        Main.config.craftingResourcesUsed_[saveSlot][tt] = 1;
+                        Main.config.craftingResourcesUsed_[saveSlot][name] = 1;
 
-                    if (Main.config.craftingResourcesUsedTotal_.ContainsKey(tt))
-                        Main.config.craftingResourcesUsedTotal_[tt]++;
+                    if (Main.config.craftingResourcesUsedTotal_.ContainsKey(name))
+                        Main.config.craftingResourcesUsedTotal_[name]++;
                     else
-                        Main.config.craftingResourcesUsedTotal_[tt] = 1;
+                        Main.config.craftingResourcesUsedTotal_[name] = 1;
 
                     if (rb)
                     {
-                        if (Main.config.craftingResourcesUsed[saveSlot].ContainsKey(tt))
-                            Main.config.craftingResourcesUsed[saveSlot][tt] += rb.mass;
+                        if (Main.config.craftingResourcesUsed[saveSlot].ContainsKey(name))
+                            Main.config.craftingResourcesUsed[saveSlot][name] += rb.mass;
                         else
-                            Main.config.craftingResourcesUsed[saveSlot][tt] = rb.mass;
+                            Main.config.craftingResourcesUsed[saveSlot][name] = rb.mass;
 
-                        if (Main.config.craftingResourcesUsedTotal.ContainsKey(tt))
-                            Main.config.craftingResourcesUsedTotal[tt] += rb.mass;
+                        if (Main.config.craftingResourcesUsedTotal.ContainsKey(name))
+                            Main.config.craftingResourcesUsedTotal[name] += rb.mass;
                         else
-                            Main.config.craftingResourcesUsedTotal[tt] = rb.mass;
+                            Main.config.craftingResourcesUsedTotal[name] = rb.mass;
                     }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(LifepodDrop), "OnSettled")]
+        class LifepodDrop_OnGroundCollision_Patch
+        { // TweaksAndFixes uses OnWaterCollision to add items
+            public static void Postfix(LifepodDrop __instance)
+            {
+                //AddDebug("LifepodDrop OnSettled");
+                StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+                foreach (var itemsDic in sc.container._items)
+                {
+                    //AddDebug("start loot " + itemsDic.Key + " " + itemsDic.Value.items.Count);
+                    string name = itemsDic.Key.AsString();
+                    Main.config.storedLifePod[saveSlot][name] = itemsDic.Value.items.Count;
+                    Main.config.storedLifePodTotal[name] = itemsDic.Value.items.Count;
                 }
             }
         }
@@ -1336,7 +1309,7 @@ namespace Stats_Tracker
             [HarmonyPatch("NotifyAddItem")]
             public static void NotifyAddItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
-                if (!Main.setupDone || !Player.main.pda.isOpen || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
+                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
                     return;
                 //AddDebug("NotifyAddItem " + __instance.tr.name);
                 TechType tt = item.item.GetTechType();
@@ -1344,86 +1317,110 @@ namespace Stats_Tracker
                 Rigidbody rb = item.item.GetComponent<Rigidbody>();
                 if (tt == TechType.None || rb == null)
                     return;
+                string name = tt.AsString();
 
                 if (Player.main.currentSub)
                 {
                     //AddDebug("currentSub " );
-                    if (Main.config.storedBase[saveSlot].ContainsKey(tt))
-                        Main.config.storedBase[saveSlot][tt]++;
+                    if (Main.config.storedBase[saveSlot].ContainsKey(name))
+                        Main.config.storedBase[saveSlot][name]++;
                     else
-                        Main.config.storedBase[saveSlot][tt] = 1;
+                        Main.config.storedBase[saveSlot][name] = 1;
 
-                    if (Main.config.storedBaseTotal.ContainsKey(tt))
-                        Main.config.storedBaseTotal[tt]++;
+                    if (Main.config.storedBaseTotal.ContainsKey(name))
+                        Main.config.storedBaseTotal[name]++;
                     else
-                        Main.config.storedBaseTotal[tt] = 1;
+                        Main.config.storedBaseTotal[name] = 1;
+                }
+                else if (Player.main.currentInterior is LifepodDrop)
+                {
+                    //AddDebug("NotifyRemoveItem LifepodDrop " + tt); 
+                    if (Main.config.storedLifePod[saveSlot].ContainsKey(name))
+                        Main.config.storedLifePod[saveSlot][name]++;
+                    else
+                        Main.config.storedLifePod[saveSlot][name] = 1;
+
+                    if (Main.config.storedLifePodTotal.ContainsKey(name))
+                        Main.config.storedLifePodTotal[name]++;
+                    else
+                        Main.config.storedLifePodTotal[name] = 1;
                 }
                 else if(Player.main.currentInterior is SeaTruckSegment)
                 {
                     //AddDebug("SeaTruckSegment ");
-                    if (Main.config.storedSeatruck[saveSlot].ContainsKey(tt))
-                        Main.config.storedSeatruck[saveSlot][tt]++;
+                    if (Main.config.storedSeatruck[saveSlot].ContainsKey(name))
+                        Main.config.storedSeatruck[saveSlot][name]++;
                     else
-                        Main.config.storedSeatruck[saveSlot][tt] = 1;
+                        Main.config.storedSeatruck[saveSlot][name] = 1;
 
-                    if (Main.config.storedSeatruckTotal.ContainsKey(tt))
-                        Main.config.storedSeatruckTotal[tt]++;
+                    if (Main.config.storedSeatruckTotal.ContainsKey(name))
+                        Main.config.storedSeatruckTotal[name]++;
                     else
-                        Main.config.storedSeatruckTotal[tt] = 1;
+                        Main.config.storedSeatruckTotal[name] = 1;
                 }
                 else
                 {
                     //AddDebug("Outside ");
-                    if (Main.config.storedOutside[saveSlot].ContainsKey(tt))
-                        Main.config.storedOutside[saveSlot][tt]++;
+                    if (Main.config.storedOutside[saveSlot].ContainsKey(name))
+                        Main.config.storedOutside[saveSlot][name]++;
                     else
-                        Main.config.storedOutside[saveSlot][tt] = 1;
+                        Main.config.storedOutside[saveSlot][name] = 1;
 
-                    if (Main.config.storedOutsideTotal.ContainsKey(tt))
-                        Main.config.storedOutsideTotal[tt]++;
+                    if (Main.config.storedOutsideTotal.ContainsKey(name))
+                        Main.config.storedOutsideTotal[name]++;
                     else
-                        Main.config.storedOutsideTotal[tt] = 1;
+                        Main.config.storedOutsideTotal[name] = 1;
                 }
             }
             [HarmonyPostfix]
             [HarmonyPatch("NotifyRemoveItem")]
             public static void NotifyRemoveItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
-                if (!Main.setupDone || !Player.main.pda.isOpen || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
+                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
                     return;
 
                 //AddDebug("NotifyRemoveItem " + __instance.tr.name);
                 TechType tt = item.item.GetTechType();
                 //AddDebug("NotifyRemoveItem " + tt);
+                string name = tt.AsString();
                 Rigidbody rb = item.item.GetComponent<Rigidbody>();
                 if (tt == TechType.None || rb == null)
                     return;
                 if (Player.main.currentSub)
                 {
                     //AddDebug("NotifyRemoveItem IsInBase " + tt);
-                    if (Main.config.storedBase[saveSlot].ContainsKey(tt) && Main.config.storedBase[saveSlot][tt] > 0)
-                        Main.config.storedBase[saveSlot][tt]--;
+                    if (Main.config.storedBase[saveSlot].ContainsKey(name) && Main.config.storedBase[saveSlot][name] > 0)
+                        Main.config.storedBase[saveSlot][name]--;
 
-                    if (Main.config.storedBaseTotal.ContainsKey(tt) && Main.config.storedBaseTotal[tt] > 0)
-                        Main.config.storedBaseTotal[tt]--;
+                    if (Main.config.storedBaseTotal.ContainsKey(name) && Main.config.storedBaseTotal[name] > 0)
+                        Main.config.storedBaseTotal[name]--;
+                }
+                else if (Player.main.currentInterior is LifepodDrop)
+                {
+                    //AddDebug("NotifyRemoveItem LifepodDrop " + tt); 
+                    if (Main.config.storedLifePod[saveSlot].ContainsKey(name) && Main.config.storedLifePod[saveSlot][name] > 0)
+                        Main.config.storedLifePod[saveSlot][name]--;
+
+                    if (Main.config.storedLifePodTotal.ContainsKey(name) && Main.config.storedLifePodTotal[name] > 0)
+                        Main.config.storedLifePodTotal[name]--;
                 }
                 else if (Player.main.currentInterior is SeaTruckSegment)
                 {
                     //AddDebug("NotifyRemoveItem SeaTruck " + tt); 
-                    if (Main.config.storedSeatruck[saveSlot].ContainsKey(tt) && Main.config.storedSeatruck[saveSlot][tt] > 0)
-                        Main.config.storedSeatruck[saveSlot][tt]--;
+                    if (Main.config.storedSeatruck[saveSlot].ContainsKey(name) && Main.config.storedSeatruck[saveSlot][name] > 0)
+                        Main.config.storedSeatruck[saveSlot][name]--;
 
-                    if (Main.config.storedSeatruckTotal.ContainsKey(tt) && Main.config.storedSeatruckTotal[tt] > 0)
-                        Main.config.storedSeatruckTotal[tt]--;
+                    if (Main.config.storedSeatruckTotal.ContainsKey(name) && Main.config.storedSeatruckTotal[name] > 0)
+                        Main.config.storedSeatruckTotal[name]--;
                 }
                 else
                 {
                     //AddDebug("NotifyRemoveItem " + tt);
-                    if (Main.config.storedOutside[saveSlot].ContainsKey(tt) && Main.config.storedOutside[saveSlot][tt] > 0)
-                        Main.config.storedOutside[saveSlot][tt]--;
+                    if (Main.config.storedOutside[saveSlot].ContainsKey(name) && Main.config.storedOutside[saveSlot][name] > 0)
+                        Main.config.storedOutside[saveSlot][name]--;
 
-                    if (Main.config.storedOutsideTotal.ContainsKey(tt) && Main.config.storedOutsideTotal[tt] > 0)
-                        Main.config.storedOutsideTotal[tt]--;
+                    if (Main.config.storedOutsideTotal.ContainsKey(name) && Main.config.storedOutsideTotal[name] > 0)
+                        Main.config.storedOutsideTotal[name]--;
                 }
             }
         }
@@ -1455,18 +1452,19 @@ namespace Stats_Tracker
                     Main.config.objectsScanned[saveSlot]++;
                     Main.config.objectsScannedTotal++;
                     TechType tt = PDAScanner.scanTarget.techType;
+                    string name = tt.AsString();
 
                     if (fauna.Contains(tt))
                     {
                         //AddDebug("scanned creature");
-                        Main.config.faunaFound[saveSlot].Add(tt);
-                        Main.config.faunaFoundTotal.Add(tt);
+                        Main.config.faunaFound[saveSlot].Add(name);
+                        Main.config.faunaFoundTotal.Add(name);
                     }
                     else if (flora.Contains(tt))
                     {
                         //AddDebug("scanned flora"); 
-                        Main.config.floraFound[saveSlot].Add(tt);
-                        Main.config.floraFoundTotal.Add(tt);
+                        Main.config.floraFound[saveSlot].Add(name);
+                        Main.config.floraFoundTotal.Add(name);
                     }
                     else if (coral.Contains(tt))
                     {
@@ -1477,14 +1475,14 @@ namespace Stats_Tracker
                                 return;
                             Main.config.jeweledDiskFound[saveSlot] = true;
                         }
-                        Main.config.coralFound[saveSlot].Add(tt);
-                        Main.config.coralFoundTotal.Add(tt);
+                        Main.config.coralFound[saveSlot].Add(name);
+                        Main.config.coralFoundTotal.Add(name);
                     }
                     else if (leviathans.Contains(tt))
                     {
                         //AddDebug("scanned leviathan");
-                        Main.config.leviathanFound[saveSlot].Add(tt);
-                        Main.config.leviathanFoundTotal.Add(tt);
+                        Main.config.leviathanFound[saveSlot].Add(name);
+                        Main.config.leviathanFoundTotal.Add(name);
                     }
 
                 }
@@ -1658,10 +1656,10 @@ namespace Stats_Tracker
         {
             public static void Postfix(SeaTruckSegment __instance)
             { // fires twice
-                if (destroyedSS && destroyedSS == __instance)
+                if (destroyedSTS && destroyedSTS == __instance)
                     return; 
 
-                destroyedSS = __instance;
+                destroyedSTS = __instance;
                 if (__instance.isMainCab)
                 {
                     //AddDebug("seatruck lost");
@@ -1746,15 +1744,17 @@ namespace Stats_Tracker
                 if (target && target.GetComponent<Eatable>())
                     return;
 
-                if (Main.config.itemsCrafted[saveSlot].ContainsKey(techType))
-                    Main.config.itemsCrafted[saveSlot][techType]++;
-                else
-                    Main.config.itemsCrafted[saveSlot][techType] = 1;
+                string name = techType.AsString();
 
-                if (Main.config.itemsCraftedTotal.ContainsKey(techType))
-                    Main.config.itemsCraftedTotal[techType]++;
+                if (Main.config.itemsCrafted[saveSlot].ContainsKey(name))
+                    Main.config.itemsCrafted[saveSlot][name]++;
                 else
-                    Main.config.itemsCraftedTotal[techType] = 1;
+                    Main.config.itemsCrafted[saveSlot][name] = 1;
+
+                if (Main.config.itemsCraftedTotal.ContainsKey(name))
+                    Main.config.itemsCraftedTotal[name]++;
+                else
+                    Main.config.itemsCraftedTotal[name] = 1;
             }
         }
 

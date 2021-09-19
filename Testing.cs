@@ -1,16 +1,16 @@
 ﻿
-using HarmonyLib;
-using QModManager.API.ModLoading;
-using System.Reflection;
-using System;
-using SMLHelper.V2.Handlers;
-using System.Collections;
-using System.Collections.Generic;
+//using HarmonyLib;
+//using QModManager.API.ModLoading;
+//using System.Reflection;
+//using System;
+//using SMLHelper.V2.Handlers;
+//using System.Collections;
+//using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
-using System.Text;
+//using FMOD;
+//using FMOD.Studio;
+//using FMODUnity;
+//using System.Text;
 using static ErrorMessage;
 
 namespace Stats_Tracker
@@ -25,9 +25,8 @@ namespace Stats_Tracker
             static void Postfix(Player __instance)
             {
                 //string biomeName = Stats_Patch.GetBiomeName(LargeWorld.main.GetBiome(Player.main.transform.position));
-                //bool inSeatruck = Player.main.currentInterior is SeaTruckSegment;
-     
-                //AddDebug(" " + LargeWorld.main.GetBiome(Player.main.transform.position));
+                //bool inLifepodDrop = Player.main.currentInterior is LifepodDrop;
+                //AddDebug("inLifepodDrop " + inLifepodDrop);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 //biomeNames.Add(biomeName);
                 if (Input.GetKey(KeyCode.B))
