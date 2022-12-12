@@ -21,7 +21,7 @@ namespace Stats_Tracker
         public static string saveSlot;
         public static CraftNode lastEncNode;
         public static Dictionary<string, PDAEncyclopedia.EntryData> mapping;
-        public static List <TechType> roomTypes = new List<TechType> { TechType.BaseRoom, TechType.BaseLargeRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseControlRoom, TechType.BaseLargeGlassDome, TechType.BaseGlassDome};
+        public static List <TechType> roomTypes = new List<TechType> { TechType.BaseRoom, TechType.BaseLargeRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseControlRoom, TechType.BaseLargeGlassDome, TechType.BaseGlassDome, TechType.BaseMoonpoolExpansion};
         public static List<TechType> corridorTypes = new List<TechType> { TechType.BaseCorridorI, TechType.BaseCorridorL, TechType.BaseCorridorT, TechType.BaseCorridorX, TechType.BaseCorridorGlassI, TechType.BaseCorridorGlassL, TechType.BaseCorridor, TechType.BaseCorridorGlass, TechType.BaseCorridor};
         public static List<TechType> fauna = new List<TechType> { TechType.Brinewing, TechType.BruteShark, TechType.Cryptosuchus, TechType.NootFish, TechType.Penguin, TechType.PenguinBaby, TechType.Crash, TechType.Pinnacarid, TechType.RockPuncher, TechType.SnowStalker, TechType.SnowStalkerBaby, TechType.SpikeyTrap, TechType.Bladderfish, TechType.Boomerang, TechType.SquidShark, TechType.Symbiote, TechType.ArcticPeeper, TechType.ArcticRay, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Hoopfish, TechType.Jellyfish, TechType.HivePlant, TechType.LilyPaddler, TechType.SeaMonkey, TechType.SeaMonkeyBaby, TechType.SpinnerFish, TechType.TitanHolefish, TechType.Skyray, TechType.Triops, TechType.Spinefish, TechType.BlueAmoeba, TechType.TrivalveBlue, TechType.TrivalveYellow };
         public static List<TechType> leviathans = new List<TechType>
@@ -509,13 +509,14 @@ namespace Stats_Tracker
             {
                 if (!Main.setupDone || descs == null || key == null || !descs.ContainsKey(key))
                     return;
+
                 if (key == "EncyDesc_StatsThisGame")
                 {
                     string biomeName = GetBiomeName(LargeWorld.main.GetBiome(Player.main.transform.position));
                     result = "Current biome: " + biomeName + "\n\n";
                     //AddDebug(" " + biomeName);
                     result += timePlayed;
-                    if (GameModeUtils.RequiresOxygen() && !GameModeUtils.IsPermadeath())
+                    if (GameModeManager.GetOption<float>(GameOption.PlayerDamageTakenModifier) > 0 && !GameModeManager.GetOption<bool>(GameOption.PermanentDeath))
                     {
                         if (Main.config.playerDeaths[saveSlot] > 0)
                             result += "\nDeaths: " + Main.config.playerDeaths[saveSlot];
@@ -568,21 +569,24 @@ namespace Stats_Tracker
                     if (Main.config.snowfoxesLost[saveSlot] > 0)
                         result += "\nSnofoxes lost: " + Main.config.snowfoxesLost[saveSlot];
 
-                    if (GameModeUtils.currentGameMode != GameModeOption.Creative)
+                    if(GameModeManager.GetOption<float>(GameOption.PlayerDamageTakenModifier) > 0)
                     {
                         result += "\n\nHealth lost: " + Main.config.healthLost[saveSlot];
                         if (Main.config.medkitsUsed[saveSlot] > 0)
                             result += "\nFirst aid kits used: " + Main.config.medkitsUsed[saveSlot];
                     }
-                
-                    if (GameModeUtils.RequiresSurvival())
+
+                    if (GameModeManager.GetOption<bool>(GameOption.Thirst))
                     {
                         result += "\n\nWater drunk: " + Main.config.waterDrunk[saveSlot] + " liters.";
+                    }
+                    if (GameModeManager.GetOption<bool>(GameOption.Hunger))
+                    {
                         result += "\nFood eaten: " + foodEaten + " kg.";
                         foreach (var kv in Main.config.foodEaten[saveSlot])
                             result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value + " kg.";
                     }
-                  
+
                     if (Main.config.baseRoomsBuilt[saveSlot] > 0 || Main.config.baseCorridorsBuilt[saveSlot] > 0)
                         result += "\n\nTotal power generated for your bases: " + basePower;
                     if (Main.config.baseCorridorsBuilt[saveSlot] > 0)
@@ -871,22 +875,22 @@ namespace Stats_Tracker
         {
             public static void Postfix(Player __instance)
             {
-                if(!GameModeUtils.IsPermadeath())
+                if(!GameModeManager.GetOption<bool>(GameOption.PermanentDeath))
                     Main.config.playerDeaths[saveSlot]++;
 
                 Main.config.deathsTotal++;
             }
         }
 
-        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
+        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
         class DamageSystem_CalculateDamage_Patch
         {
-            public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer,  float __result)
+            public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result, TechType techType)
             {
-                if (__result > 0f && target == Player.mainObject)
+                if (__result > 0f && techType == TechType.Player)
                 {
-                    //AddDebug("Player takes damage");
                     int dam = Mathf.RoundToInt(__result);
+                    //AddDebug("Player takes damage " + dam);   
                     Main.config.healthLost[saveSlot] += dam;
                     Main.config.healthLostTotal += dam;
                 }
@@ -1128,9 +1132,9 @@ namespace Stats_Tracker
         { // Tweaks&Fixes overwrites TakeDamage so cant use Prefix
             public static void Postfix(LiveMixin __instance, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
-                if (dealer && killedLM && __instance == killedLM)
+                if (dealer && killedLM && __instance.Equals(killedLM))
                 {
-                    if (dealer == Player.main.gameObject || dealer.GetComponent<SeaTruckSegment>())
+                    if (dealer.Equals(Player.main.gameObject) || dealer.GetComponent<SeaTruckSegment>())
                     {
                         TechType tt = CraftData.GetTechType(__instance.gameObject);
                         if (tt == TechType.None)
@@ -1309,7 +1313,7 @@ namespace Stats_Tracker
             [HarmonyPatch("NotifyAddItem")]
             public static void NotifyAddItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
-                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
+                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container.Equals(__instance) || __instance.tr.parent.GetComponent<Trashcan>())
                     return;
                 //AddDebug("NotifyAddItem " + __instance.tr.name);
                 TechType tt = item.item.GetTechType();
@@ -1317,6 +1321,7 @@ namespace Stats_Tracker
                 Rigidbody rb = item.item.GetComponent<Rigidbody>();
                 if (tt == TechType.None || rb == null)
                     return;
+
                 string name = tt.AsString();
 
                 if (Player.main.currentSub)
@@ -1376,7 +1381,7 @@ namespace Stats_Tracker
             [HarmonyPatch("NotifyRemoveItem")]
             public static void NotifyRemoveItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
-                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container == __instance || __instance.tr.parent.GetComponent<Trashcan>())
+                if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container.Equals(__instance) || __instance.tr.parent.GetComponent<Trashcan>())
                     return;
 
                 //AddDebug("NotifyRemoveItem " + __instance.tr.name);
@@ -1386,6 +1391,7 @@ namespace Stats_Tracker
                 Rigidbody rb = item.item.GetComponent<Rigidbody>();
                 if (tt == TechType.None || rb == null)
                     return;
+
                 if (Player.main.currentSub)
                 {
                     //AddDebug("NotifyRemoveItem IsInBase " + tt);
@@ -1656,7 +1662,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(SeaTruckSegment __instance)
             { // fires twice
-                if (destroyedSTS && destroyedSTS == __instance)
+                if (destroyedSTS && destroyedSTS.Equals(__instance))
                     return; 
 
                 destroyedSTS = __instance;
@@ -1779,7 +1785,7 @@ namespace Stats_Tracker
             }
         }
 
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "Add", new Type[] { typeof(string), typeof(PDAEncyclopedia.Entry), typeof(bool) })]
+        //[HarmonyPatch(typeof(PDAEncyclopedia), "Add", new Type[] { typeof(string), typeof(PDAEncyclopedia.Entry), typeof})]
         internal class PDAEncyclopedia_Add_Patch
         {
             public static void Postfix(string key, PDAEncyclopedia.Entry entry)

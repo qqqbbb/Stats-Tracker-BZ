@@ -102,9 +102,9 @@ namespace Stats_Tracker
             setupDone = true;
         }
 
-        [HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
+        //[HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
         internal class uGUI_SceneLoading_End_Patch
-        { // fires 3 times after game loads
+        { // fires 2 times after game loads
             public static void Postfix(uGUI_SceneLoading __instance)
             {
                 //if (!uGUI.main.hud.active)
@@ -113,6 +113,16 @@ namespace Stats_Tracker
                 //return;
                 //}
                 //AddDebug(" uGUI_SceneLoading end");
+                Setup();
+            }
+        }
+
+        [HarmonyPatch(typeof(WaitScreen), "Hide")]
+        internal class WaitScreen_Hide_Patch
+        {
+            public static void Postfix(WaitScreen __instance)
+            {
+                //AddDebug(" WaitScreen Hide  !!!");
                 Setup();
             }
         }

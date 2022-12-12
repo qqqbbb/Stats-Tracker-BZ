@@ -68,7 +68,7 @@
     <Compile Include="Testing.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Patch.cs" />
+    <Compile Include="Stats_Patch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
