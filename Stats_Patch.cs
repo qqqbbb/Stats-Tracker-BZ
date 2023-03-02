@@ -537,7 +537,7 @@ namespace Stats_Tracker
                   
                     result += "\n\nDistance traveled: " + Main.config.distanceTraveled[saveSlot] + " meters.";
                     result += "\nDistance traveled by swimming: " + Main.config.distanceTraveledSwim[saveSlot] + " meters.";
-                    result += "\nDistance traveled by foot: " + Main.config.distanceTraveledWalk[saveSlot] + " meters.";
+                    result += "\nDistance traveled on foot: " + Main.config.distanceTraveledWalk[saveSlot] + " meters.";
                     result += "\nDistance traveled by seaglide: " + Main.config.distanceTraveledSeaglide[saveSlot] + " meters.";
 
                     if (Main.config.snowfoxesBuilt[saveSlot] > 0)
@@ -725,7 +725,7 @@ namespace Stats_Tracker
                     result += "\nTime spent piloting seatruck: " + Main.config.timeSeatruckTotal.Days + " days, " + Main.config.timeSeatruckTotal.Hours + " hours, " + Main.config.timeSeatruckTotal.Minutes + " minutes.";
 
                     result += "\n\nDistance traveled: " + GetTraveledString(Main.config.distanceTraveledTotal);
-                    result += "\nDistance traveled by foot: " + Main.config.distanceTraveledWalkTotal + " meters.";
+                    result += "\nDistance traveled on foot: " + Main.config.distanceTraveledWalkTotal + " meters.";
                     result += "\nDistance traveled by swimming: " + Main.config.distanceTraveledSwimTotal + " meters.";
                     result += "\nDistance traveled by seaglide: " + Main.config.distanceTraveledSeaglideTotal + " meters.";
                     result += "\nDistance traveled by snowfox: " + Main.config.distanceTraveledSnowfoxTotal + " meters.";
@@ -912,7 +912,8 @@ namespace Stats_Tracker
                     {
                         float foodValue = eatable.GetFoodValue();
                         float waterValue = eatable.GetWaterValue();
-                        string name = CraftData.GetTechType(useObj).AsString();
+                        TechType tt = CraftData.GetTechType(useObj);
+                        string name = tt.AsString();
 
                         if (foodValue >= waterValue)
                         {
@@ -930,6 +931,23 @@ namespace Stats_Tracker
                         {
                             Main.config.waterDrunk[saveSlot] += rb.mass;
                             Main.config.waterDrunkTotal += rb.mass;
+                        }
+                        if (fauna.Contains(tt))
+                        {
+                            //AddDebug(tt + " animal killed by player");
+                            LiveMixin lm = useObj.GetComponent<LiveMixin>();
+                            if (lm && lm.IsAlive())
+                            {
+                                if (Main.config.animalsKilledTotal.ContainsKey(name))
+                                    Main.config.animalsKilledTotal[name]++;
+                                else
+                                    Main.config.animalsKilledTotal[name] = 1;
+
+                                if (Main.config.animalsKilled[saveSlot].ContainsKey(name))
+                                    Main.config.animalsKilled[saveSlot][name]++;
+                                else
+                                    Main.config.animalsKilled[saveSlot][name] = 1;
+                            }
                         }
                     }
                 }
