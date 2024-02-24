@@ -1,12 +1,9 @@
 ﻿using HarmonyLib;
-//using QModManager.Utility;
 using System;
-//using System.Linq;
-//using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using SMLHelper.V2.Handlers;
+using Nautilus.Handlers;
 using static ErrorMessage;
 
 namespace Stats_Tracker
@@ -35,7 +32,7 @@ namespace Stats_Tracker
         public static Dictionary<string, string> myStrings = new Dictionary<string, string>();
         public static Dictionary<string, string> descs = new Dictionary<string, string>();
         public static HashSet<PowerRelay> powerRelays = new HashSet<PowerRelay>();
-        static string timePlayed { get { return "Time since landing on the planet: " + GetTimePlayed().Days + " days, " + GetTimePlayed().Hours + " hours, " + GetTimePlayed().Minutes + " minutes"; } }
+        static string timePlayed { get { return "Time spent on the planet: " + GetTimePlayed().Days + " days, " + GetTimePlayed().Hours + " hours, " + GetTimePlayed().Minutes + " minutes"; } }
         static string timePlayedTotal
         {
             get
@@ -448,7 +445,7 @@ namespace Stats_Tracker
                 key = key,
                 nodes = nodes
             };
-            PDAEncyclopediaHandler.AddCustomEntry(entry);
+            PDAHandler.AddEncyclopediaEntry(entry);
             //mapping[key] = entry;
             myStrings[key] = desc;
             descs["EncyDesc_" + key] = desc;
@@ -1070,6 +1067,7 @@ namespace Stats_Tracker
                     Main.config.timeWalked[saveSlot] += updatePeriod;
                     Main.config.timeWalkedTotal += updatePeriod;
                 }
+
                 if (__instance.currentInterior is LifepodDrop)
                 {
                     Main.config.timeEscapePod[saveSlot] += updatePeriod;

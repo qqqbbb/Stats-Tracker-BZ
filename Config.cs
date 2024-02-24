@@ -1,11 +1,9 @@
-﻿using SMLHelper.V2.Json;
-using SMLHelper.V2.Options.Attributes;
+﻿using Nautilus.Json;
 using System.Collections.Generic;
 using System;
 
 namespace Stats_Tracker
 {
-    //[Menu("Custom Spawner Settings")]
     public class Config : ConfigFile
     {
         public Dictionary<string, TimeSpan> timePlayed = new Dictionary<string, TimeSpan>();

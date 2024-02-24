@@ -1,24 +1,31 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
-using SMLHelper.V2.Handlers;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Bootstrap;
+using Nautilus.Handlers;
+using Nautilus.Assets;
+using Nautilus.Utility;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Assets.Gadgets;
 using static ErrorMessage;
+using static OVRPlugin;
+using Steamworks;
 
 namespace Stats_Tracker
-{	
-    [QModCore]
-    public class Main
+{
+    [BepInPlugin(GUID, MODNAME, VERSION)]
+    public class Main : BaseUnityPlugin
     {
-        public static Config config = new Config();
+        private const string
+            MODNAME = "Stats Tracker",
+            GUID = "qqqbbb.subnauticaBZ.statsTracker",
+            VERSION = "2.0.0";
+        public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
         public static bool setupDone = false;
-
-        public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Debug)
-        {
-            QModManager.Utility.Logger.Log(lvl, str);
-        }
 
         public static void PrepareSaveSlot(string saveSlot)
         {
@@ -102,21 +109,6 @@ namespace Stats_Tracker
             setupDone = true;
         }
 
-        //[HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
-        internal class uGUI_SceneLoading_End_Patch
-        { // fires 2 times after game loads
-            public static void Postfix(uGUI_SceneLoading __instance)
-            {
-                //if (!uGUI.main.hud.active)
-                //{
-                //AddDebug(" is Loading");
-                //return;
-                //}
-                //AddDebug(" uGUI_SceneLoading end");
-                Setup();
-            }
-        }
-
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
         internal class WaitScreen_Hide_Patch
         {
@@ -144,27 +136,12 @@ namespace Stats_Tracker
             config.Load();
         }
 
-        [QModPatch]
-        public static void Load()
+        private void Start()
         {
-            config.Load();
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
-            IngameMenuHandler.RegisterOnSaveEvent(SaveData);
-            IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-
-        }
-
-        //[HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
-        internal class SaveLoadManager_ClearSlotAsync_Patch
-        {
-            public static void Postfix(SaveLoadManager __instance, string slotName)
-            {
-                //AddDebug("ClearSlotAsync " + slotName);
-                //config.escapePodSmokeOut.Remove(slotName);
-                //config.openedWreckDoors.Remove(slotName);
-                //config.Save();
-            }
+            Harmony harmony = new Harmony(GUID);
+            harmony.PatchAll();
+            SaveUtils.RegisterOnSaveEvent(SaveData);
+            SaveUtils.RegisterOnQuitEvent(CleanUp);
         }
 
         [HarmonyPatch(typeof(Player), "Awake")]
