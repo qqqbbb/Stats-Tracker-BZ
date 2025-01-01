@@ -1,14 +1,14 @@
 ﻿using HarmonyLib;
+using Nautilus.Handlers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using Nautilus.Handlers;
 using static ErrorMessage;
 
 namespace Stats_Tracker
 {
-    internal class Stats_Patch
+    internal class Patch_old
     {
         static SeaTruckSegment destroyedSTS = null;
         static bool removeIngredient = false;
@@ -18,8 +18,8 @@ namespace Stats_Tracker
         public static string saveSlot;
         public static CraftNode lastEncNode;
         public static Dictionary<string, PDAEncyclopedia.EntryData> mapping;
-        public static List <TechType> roomTypes = new List<TechType> { TechType.BaseRoom, TechType.BaseLargeRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseControlRoom, TechType.BaseLargeGlassDome, TechType.BaseGlassDome, TechType.BaseMoonpoolExpansion};
-        public static List<TechType> corridorTypes = new List<TechType> { TechType.BaseCorridorI, TechType.BaseCorridorL, TechType.BaseCorridorT, TechType.BaseCorridorX, TechType.BaseCorridorGlassI, TechType.BaseCorridorGlassL, TechType.BaseCorridor, TechType.BaseCorridorGlass, TechType.BaseCorridor};
+        public static List<TechType> roomTypes = new List<TechType> { TechType.BaseRoom, TechType.BaseLargeRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseControlRoom, TechType.BaseLargeGlassDome, TechType.BaseGlassDome, TechType.BaseMoonpoolExpansion };
+        public static List<TechType> corridorTypes = new List<TechType> { TechType.BaseCorridorI, TechType.BaseCorridorL, TechType.BaseCorridorT, TechType.BaseCorridorX, TechType.BaseCorridorGlassI, TechType.BaseCorridorGlassL, TechType.BaseCorridor, TechType.BaseCorridorGlass, TechType.BaseCorridor };
         public static List<TechType> fauna = new List<TechType> { TechType.Brinewing, TechType.BruteShark, TechType.Cryptosuchus, TechType.NootFish, TechType.Penguin, TechType.PenguinBaby, TechType.Crash, TechType.Pinnacarid, TechType.RockPuncher, TechType.SnowStalker, TechType.SnowStalkerBaby, TechType.SpikeyTrap, TechType.Bladderfish, TechType.Boomerang, TechType.SquidShark, TechType.Symbiote, TechType.ArcticPeeper, TechType.ArcticRay, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Hoopfish, TechType.Jellyfish, TechType.HivePlant, TechType.LilyPaddler, TechType.SeaMonkey, TechType.SeaMonkeyBaby, TechType.SpinnerFish, TechType.TitanHolefish, TechType.Skyray, TechType.Triops, TechType.Spinefish, TechType.BlueAmoeba, TechType.TrivalveBlue, TechType.TrivalveYellow };
         public static List<TechType> leviathans = new List<TechType>
         {TechType.GlowWhale, TechType.Chelicerate, TechType.IceWorm, TechType.LargeVentGarden, TechType.SmallVentGarden, TechType.SeaEmperorJuvenile, TechType.ShadowLeviathan };
@@ -32,7 +32,7 @@ namespace Stats_Tracker
         public static Dictionary<string, string> myStrings = new Dictionary<string, string>();
         public static Dictionary<string, string> descs = new Dictionary<string, string>();
         public static HashSet<PowerRelay> powerRelays = new HashSet<PowerRelay>();
-        static string timePlayed { get { return "Time spent on the planet: " + GetTimePlayed().Days + " days, " + GetTimePlayed().Hours + " hours, " + GetTimePlayed().Minutes + " minutes"; } }
+        //static string timePlayed { get { return "Time spent on the planet: " + GetTimePlayed().Days + " days, " + GetTimePlayed().Hours + " hours, " + GetTimePlayed().Minutes + " minutes"; } }
         static string timePlayedTotal
         {
             get
@@ -41,20 +41,22 @@ namespace Stats_Tracker
                 foreach (var item in Main.config.timePlayed)
                 {
                     //if (item.Key != saveSlot)
-                        total += item.Value;
+                    total += item.Value;
                 }
-                total += GetTimePlayed();
+                //total += GetTimePlayed();
                 return "Time since landing on the planet: " + total.Days + " days, " + total.Hours + " hours, " + total.Minutes + " minutes";
             }
         }
-        static TravelMode travelMode;
+        //static TravelMode travelMode;
+
+        /*
         static int itemsCraftedTotal
         {
             get
             {
                 int total = 0;
-                foreach (var kv in Main.config.itemsCraftedTotal)
-                    total += kv.Value;
+                //foreach (var kv in Main.config.itemsCraftedTotal)
+                //    total += kv.Value;
 
                 return total;
             }
@@ -95,7 +97,7 @@ namespace Stats_Tracker
                 foreach (var kv in Main.config.objectsScanned)
                 {
                     //if (kv.Key != saveSlot)
-                        total += kv.Value;
+                    total += kv.Value;
                 }
                 total += Main.config.objectsScanned[saveSlot];
 
@@ -110,7 +112,7 @@ namespace Stats_Tracker
                 foreach (var kv in Main.config.blueprintsUnlocked)
                 {
                     //if (kv.Key != saveSlot)
-                        total += kv.Value;
+                    total += kv.Value;
                 }
                 total += Main.config.blueprintsUnlocked[saveSlot];
 
@@ -125,7 +127,7 @@ namespace Stats_Tracker
                 foreach (var kv in Main.config.blueprintsFromDatabox)
                 {
                     //if (kv.Key != saveSlot)
-                        total += kv.Value;
+                    total += kv.Value;
                 }
                 total += Main.config.blueprintsFromDatabox[saveSlot];
 
@@ -499,7 +501,7 @@ namespace Stats_Tracker
             LanguageHandler.SetLanguageLine("EncyPath_Stats", "Statistics");
         }
 
-        [HarmonyPatch(typeof(Language), "TryGet")]
+        //[HarmonyPatch(typeof(Language), "TryGet")]
         internal class Language_TryGet_Patch
         {
             public static void Postfix(Language __instance, string key, ref string result)
@@ -531,7 +533,7 @@ namespace Stats_Tracker
                         result += "\nTime spent piloting prawn suit: " + Main.config.timeExosuit[saveSlot].Days + " days, " + Main.config.timeExosuit[saveSlot].Hours + " hours, " + Main.config.timeExosuit[saveSlot].Minutes + " minutes.";
                     if (Main.config.seatrucksBuilt[saveSlot] > 0)
                         result += "\nTime spent piloting seatruck: " + Main.config.timeSeatruck[saveSlot].Days + " days, " + Main.config.timeSeatruck[saveSlot].Hours + " hours, " + Main.config.timeSeatruck[saveSlot].Minutes + " minutes.";
-                  
+
                     result += "\n\nDistance traveled: " + Main.config.distanceTraveled[saveSlot] + " meters.";
                     result += "\nDistance traveled by swimming: " + Main.config.distanceTraveledSwim[saveSlot] + " meters.";
                     result += "\nDistance traveled on foot: " + Main.config.distanceTraveledWalk[saveSlot] + " meters.";
@@ -566,7 +568,7 @@ namespace Stats_Tracker
                     if (Main.config.snowfoxesLost[saveSlot] > 0)
                         result += "\nSnofoxes lost: " + Main.config.snowfoxesLost[saveSlot];
 
-                    if(GameModeManager.GetOption<float>(GameOption.PlayerDamageTakenModifier) > 0)
+                    if (GameModeManager.GetOption<float>(GameOption.PlayerDamageTakenModifier) > 0)
                     {
                         result += "\n\nHealth lost: " + Main.config.healthLost[saveSlot];
                         if (Main.config.medkitsUsed[saveSlot] > 0)
@@ -592,7 +594,7 @@ namespace Stats_Tracker
                         result += "\nBase rooms built: " + Main.config.baseRoomsBuilt[saveSlot];
                     //foreach (var kv in Main.config.baseRoomsBuilt[saveSlot])
                     //    result += "\n      " + Language.main.Get(kv.Key.AsString()) + " " + kv.Value;
-              
+
                     if (Main.config.objectsScanned[saveSlot] > 0 || Main.config.blueprintsFromDatabox[saveSlot] > 0 || Main.config.blueprintsUnlocked[saveSlot] > 0)
                         result += "\n";
                     if (Main.config.objectsScanned[saveSlot] > 0)
@@ -601,12 +603,12 @@ namespace Stats_Tracker
                         result += "\nBlueprints unlocked by scanning: " + Main.config.blueprintsUnlocked[saveSlot];
                     if (Main.config.blueprintsFromDatabox[saveSlot] > 0)
                         result += "\nBlueprints found in databoxes: " + Main.config.blueprintsFromDatabox[saveSlot];
-              
+
                     if (plantsKilled > 0)
                         result += "\n\nPlants killed: " + plantsKilled;
                     foreach (var kv in Main.config.plantsKilled[saveSlot])
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
-                
+
                     if (animalsKilled > 0)
                         result += "\n\nAnimals killed: " + animalsKilled;
                     foreach (var kv in Main.config.animalsKilled[saveSlot])
@@ -621,7 +623,7 @@ namespace Stats_Tracker
                         result += "\n\nLeviathans killed: " + leviathansKilled;
                     foreach (var kv in Main.config.leviathansKilled[saveSlot])
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
-   
+
                     result += "\n\nItems crafted: " + itemsCrafted;
                     foreach (var kv in Main.config.itemsCrafted[saveSlot])
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
@@ -634,7 +636,7 @@ namespace Stats_Tracker
                         result += "\n\nPlants raised: " + plantsRaised;
                     foreach (var kv in Main.config.plantsRaised[saveSlot])
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
-      
+
                     if (eggsHatched > 0)
                     {
                         result += "\n\nEggs hatched in AC: " + eggsHatched;
@@ -687,7 +689,7 @@ namespace Stats_Tracker
                         result += "\n\nFauna species discovered: ";
                     foreach (string name in Main.config.faunaFound[saveSlot])
                         result += "\n      " + Language.main.Get(name);
-        
+
                     if (Main.config.floraFound[saveSlot].Count > 0)
                         result += "\n\nFlora species discovered: ";
                     foreach (string name in Main.config.floraFound[saveSlot])
@@ -739,15 +741,15 @@ namespace Stats_Tracker
                     result += "\nSnowfoxes lost: " + Main.config.snowfoxesLostTotal;
                     result += "\nPrawn suits constructed: " + Main.config.exosuitsBuiltTotal;
                     result += "\nPrawn suits lost: " + Main.config.exosuitsLostTotal;
-                 
+
                     result += "\n\nHealth lost: " + Main.config.healthLostTotal;
                     result += "\nFirst aid kits used: " + Main.config.medkitsUsedTotal;
-               
+
                     result += "\n\nWater drunk: " + Main.config.waterDrunkTotal + " liters.";
                     result += "\nFood eaten: " + foodEatenTotal + " kg.";
                     foreach (var kv in Main.config.foodEatenTotal)
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value + " kg.";
-              
+
                     result += "\n\nTotal power generated for your bases: " + basePowerTotal;
                     result += "\nBase corridor segments built: " + Main.config.baseCorridorsBuiltTotal;
                     result += "\nBase rooms built: " + Main.config.baseRoomsBuiltTotal;
@@ -757,7 +759,7 @@ namespace Stats_Tracker
                     result += "\n\nThings scanned: " + objectsScannedTotal;
                     result += "\nBlueprints unlocked by scanning: " + blueprintsUnlockedTotal;
                     result += "\nBlueprints found in databoxes: " + blueprintsFromDataboxesTotal;
-               
+
                     result += "\n\nPlants killed: " + plantsKilledTotal;
                     foreach (var kv in Main.config.plantsKilledTotal)
                         result += "\n      " + Language.main.Get(kv.Key) + " " + kv.Value;
@@ -821,7 +823,7 @@ namespace Stats_Tracker
                     result += "\n\nFauna species discovered: ";
                     foreach (string name in Main.config.faunaFoundTotal)
                         result += "\n      " + Language.main.Get(name);
-    
+
                     result += "\n\nFlora species discovered: ";
                     foreach (string name in Main.config.floraFoundTotal)
                         result += "\n      " + Language.main.Get(name);
@@ -837,17 +839,17 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(ExpansionIntroManagerV2))]
+        //[HarmonyPatch(typeof(ExpansionIntroManagerV2))]
         internal class ExpansionIntroManagerV2_Patch
         {
-            [HarmonyPatch("Start")]
+            //[HarmonyPatch("Start")]
             [HarmonyPostfix]
             public static void CinematicStartPostfix(ExpansionIntroManagerV2 __instance)
             {
                 //AddDebug("Start");
                 introCinRunning = true;
             }
-            [HarmonyPatch("OnCinematicEnded")]
+            //[HarmonyPatch("OnCinematicEnded")]
             [HarmonyPostfix]
             public static void OnCinematicEndedPostfix(ExpansionIntroManagerV2 __instance)
             {
@@ -856,7 +858,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(BelowZeroEndGame), "ShowCredits")]
+        //[HarmonyPatch(typeof(BelowZeroEndGame), "ShowCredits")]
         internal class BelowZeroEndGame_ShowCredits_Patch
         {
             public static void Postfix(BelowZeroEndGame __instance)
@@ -867,19 +869,19 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Player), "OnKill")]
+        //[HarmonyPatch(typeof(Player), "OnKill")]
         internal class Player_OnKill_Patch
         {
             public static void Postfix(Player __instance)
             {
-                if(!GameModeManager.GetOption<bool>(GameOption.PermanentDeath))
+                if (!GameModeManager.GetOption<bool>(GameOption.PermanentDeath))
                     Main.config.playerDeaths[saveSlot]++;
 
                 Main.config.deathsTotal++;
             }
         }
 
-        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
+        //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
         class DamageSystem_CalculateDamage_Patch
         {
             public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result, TechType techType)
@@ -894,11 +896,11 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Survival))]
+        //[HarmonyPatch(typeof(Survival))]
         class Survival_Eat_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch("Eat")]
+            //[HarmonyPatch("Eat")]
             public static void EatPostfix(Survival __instance, GameObject useObj, bool __result)
             {
                 if (__result)
@@ -950,7 +952,7 @@ namespace Stats_Tracker
                 }
             }
             [HarmonyPostfix]
-            [HarmonyPatch("Use")]
+            //[HarmonyPatch("Use")]
             public static void UsePostfix(Survival __instance, GameObject useObj, bool __result)
             {
                 if (!__result)
@@ -966,7 +968,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Player), "TrackTravelStats")]
+        //[HarmonyPatch(typeof(Player), "TrackTravelStats")]
         internal class Player_TrackTravelStats_Patch
         {
             public static bool Prefix(Player __instance)
@@ -1035,7 +1037,7 @@ namespace Stats_Tracker
 
                 if (__instance.motorMode == Player.MotorMode.CreatureRide)
                     travelMode = TravelMode.CreatureRide;
-                else if(__instance.motorMode == Player.MotorMode.Seaglide)
+                else if (__instance.motorMode == Player.MotorMode.Seaglide)
                     travelMode = TravelMode.Seaglide;
                 else if (__instance.inSeatruckPilotingChair)
                 {
@@ -1073,7 +1075,7 @@ namespace Stats_Tracker
                     Main.config.timeEscapePod[saveSlot] += updatePeriod;
                     Main.config.timeEscapePodTotal += updatePeriod;
                 }
-                else if(__instance.IsInBase())
+                else if (__instance.IsInBase())
                 {
                     Main.config.timeBase[saveSlot] += updatePeriod;
                     Main.config.timeBaseTotal += updatePeriod;
@@ -1083,7 +1085,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(CreatureEgg), "Hatch")]
+        //[HarmonyPatch(typeof(CreatureEgg), "Hatch")]
         internal class CreatureEgg_Hatch_Patch
         {
             public static void Postfix(CreatureEgg __instance)
@@ -1105,7 +1107,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(GrowingPlant), "SpawnGrownModel")]
+        //[HarmonyPatch(typeof(GrowingPlant), "SpawnGrownModel")]
         internal class GrowingPlant_SpawnGrownModel_Patch
         {
             public static void Postfix(GrowingPlant __instance)
@@ -1132,7 +1134,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(LiveMixin), "Kill")]
+        //[HarmonyPatch(typeof(LiveMixin), "Kill")]
         internal class LiveMixin_Kill_Patch
         {
             public static void Prefix(LiveMixin __instance)
@@ -1143,7 +1145,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(LiveMixin), "TakeDamage")]
+        //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]
         internal class LiveMixin_TakeDamage_Patch
         { // Tweaks&Fixes overwrites TakeDamage so cant use Prefix
             public static void Postfix(LiveMixin __instance, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
@@ -1216,11 +1218,11 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Inventory))]
+        //[HarmonyPatch(typeof(Inventory))]
         internal class Inventory_Patch
         { // runs when you have enough ingredients
             [HarmonyPrefix]
-            [HarmonyPatch("ConsumeResourcesForRecipe")]
+            //[HarmonyPatch("ConsumeResourcesForRecipe")]
             public static void ConsumeResourcesForRecipePrefix(Inventory __instance, TechType techType)
             {
                 ReadOnlyCollection<Ingredient> ingredients = TechData.GetIngredients(techType);
@@ -1229,17 +1231,17 @@ namespace Stats_Tracker
                 removeIngredient = true;
             }
             [HarmonyPostfix]
-            [HarmonyPatch("ConsumeResourcesForRecipe")]
+            //[HarmonyPatch("ConsumeResourcesForRecipe")]
             public static void ConsumeResourcesForRecipePostfix(Inventory __instance, TechType techType)
             {
                 removeIngredient = false;
             }
             [HarmonyPostfix]
-            [HarmonyPatch("OnRemoveItem")]
+            //[HarmonyPatch("OnRemoveItem")]
             public static void OnRemoveItemPostfix(InventoryItem item)
             {
                 if (removeIngredient || constructing)
-                { 
+                {
                     LiveMixin liveMixin = item.item.GetComponent<LiveMixin>();
                     Rigidbody rb = item.item.GetComponent<Rigidbody>();
                     TechType tt = item.item.GetTechType();
@@ -1305,7 +1307,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(LifepodDrop), "OnSettled")]
+        //[HarmonyPatch(typeof(LifepodDrop), "OnSettled")]
         class LifepodDrop_OnGroundCollision_Patch
         { // TweaksAndFixes uses OnWaterCollision to add items
             public static void Postfix(LifepodDrop __instance)
@@ -1322,11 +1324,11 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(ItemsContainer))]
+        //[HarmonyPatch(typeof(ItemsContainer))]
         internal class ItemsContainer_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch("NotifyAddItem")]
+            //[HarmonyPatch("NotifyAddItem")]
             public static void NotifyAddItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
                 if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container.Equals(__instance) || __instance.tr.parent.GetComponent<Trashcan>())
@@ -1366,7 +1368,7 @@ namespace Stats_Tracker
                     else
                         Main.config.storedLifePodTotal[name] = 1;
                 }
-                else if(Player.main.currentInterior is SeaTruckSegment)
+                else if (Player.main.currentInterior is SeaTruckSegment)
                 {
                     //AddDebug("SeaTruckSegment ");
                     if (Main.config.storedSeatruck[saveSlot].ContainsKey(name))
@@ -1394,7 +1396,7 @@ namespace Stats_Tracker
                 }
             }
             [HarmonyPostfix]
-            [HarmonyPatch("NotifyRemoveItem")]
+            //[HarmonyPatch("NotifyRemoveItem")]
             public static void NotifyRemoveItemPostfix(ItemsContainer __instance, InventoryItem item)
             {
                 if (!Main.setupDone || Inventory.main.usedStorage.Count == 0 || Inventory.main._container.Equals(__instance) || __instance.tr.parent.GetComponent<Trashcan>())
@@ -1447,7 +1449,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(BlueprintHandTarget), "UnlockBlueprint")]
+        //[HarmonyPatch(typeof(BlueprintHandTarget), "UnlockBlueprint")]
         internal class BlueprintHandTarget_UnlockBlueprint_Patch
         {
             public static void Postfix(BlueprintHandTarget __instance)
@@ -1461,7 +1463,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(ScannerTool), "Scan")]
+        //[HarmonyPatch(typeof(ScannerTool), "Scan")]
         internal class ScannerTool_Scan_Patch
         {
             public static void Postfix(ScannerTool __instance, PDAScanner.Result __result)
@@ -1512,7 +1514,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(PDAScanner), "Unlock")]
+        //[HarmonyPatch(typeof(PDAScanner), "Unlock")]
         internal class PDAScanner_Unlock_Patch
         {
             public static void Postfix(PDAScanner.EntryData entryData, bool unlockBlueprint, bool unlockEncyclopedia,
@@ -1539,7 +1541,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_EncyclopediaTab), "Activate")]
+        //[HarmonyPatch(typeof(uGUI_EncyclopediaTab), "Activate")]
         internal class uGUI_EncyclopediaTab_Activate_Patch
         {
             public static void Postfix(uGUI_EncyclopediaTab __instance, CraftNode node)
@@ -1552,22 +1554,22 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Constructable))]
+        //[HarmonyPatch(typeof(Constructable))]
         class Constructable_NotifyConstructedChanged_Patch
         {
-            [HarmonyPatch(nameof(Constructable.Construct))]
+            //[HarmonyPatch(nameof(Constructable.Construct))]
             [HarmonyPrefix]
             static void ConstructPretfix(Constructable __instance)
             {
                 constructing = true;
             }
-            [HarmonyPatch(nameof(Constructable.Construct))]
+            //[HarmonyPatch(nameof(Constructable.Construct))]
             [HarmonyPostfix]
             static void ConstructPostfix(Constructable __instance)
             {
                 constructing = false;
             }
-            [HarmonyPatch(nameof(Constructable.NotifyConstructedChanged))]
+            //[HarmonyPatch(nameof(Constructable.NotifyConstructedChanged))]
             [HarmonyPostfix]
             static void NotifyConstructedChangedPostfix(Constructable __instance, bool constructed)
             {
@@ -1588,11 +1590,11 @@ namespace Stats_Tracker
                         Main.config.baseRoomsBuiltTotal++;
                     }
                 }
-                else if(!constructed)
+                else if (!constructed)
                 {
                     if (corridorTypes.Contains(__instance.techType))
                     {
-                        if(Main.config.baseCorridorsBuilt[saveSlot] > 0)
+                        if (Main.config.baseCorridorsBuilt[saveSlot] > 0)
                             Main.config.baseCorridorsBuilt[saveSlot]--;
                         if (Main.config.baseCorridorsBuiltTotal > 0)
                             Main.config.baseCorridorsBuiltTotal--;
@@ -1608,7 +1610,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(SubRoot), "Start")]
+        //[HarmonyPatch(typeof(SubRoot), "Start")]
         class SubRoot_UpdatePower_Patch
         {
             static void Postfix(SubRoot __instance)
@@ -1618,23 +1620,7 @@ namespace Stats_Tracker
             }
         }
 
-        //[HarmonyPatch(typeof(PowerRelay), "Start")]
-        internal class PowerRelay_Start_Patch
-        {
-            public static void Postfix(PowerRelay __instance)
-            {
-
-                if (__instance.GetComponent<LifepodDrop>() || __instance.GetComponent<SeaTruckSegment>() || __instance.GetComponent<Hoverpad>())
-                { }
-                else
-                {
-                    powerRelays.Add(__instance);
-                    //AddDebug(" PowerRelay Start " + __instance.name + " " + __instance.GetMaxPower());
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_EncyclopediaTab), "Open")]
+        //[HarmonyPatch(typeof(uGUI_EncyclopediaTab), "Open")]
         internal class uGUI_EncyclopediaTab_Close_Patch
         {
             public static void Prefix(uGUI_EncyclopediaTab __instance)
@@ -1648,7 +1634,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Vehicle), "OnKill")]
+        //[HarmonyPatch(typeof(Vehicle), "OnKill")]
         internal class Vehicle_OnKill_Patch
         {
             public static void Postfix(Vehicle __instance)
@@ -1662,7 +1648,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Hoverbike), "OnKill")]
+        //[HarmonyPatch(typeof(Hoverbike), "OnKill")]
         internal class Hoverbike_OnKill_Patch
         {
             public static void Postfix(Hoverbike __instance)
@@ -1673,13 +1659,13 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(SeaTruckSegment), "OnKill")]
+        //[HarmonyPatch(typeof(SeaTruckSegment), "OnKill")]
         internal class SeaTruckSegment_OnKill_Patch
         {
             public static void Postfix(SeaTruckSegment __instance)
             { // fires twice
                 if (destroyedSTS && destroyedSTS.Equals(__instance))
-                    return; 
+                    return;
 
                 destroyedSTS = __instance;
                 if (__instance.isMainCab)
@@ -1697,7 +1683,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(HoverpadConstructor), "SpawnHoverbikeAsync")]
+        //[HarmonyPatch(typeof(HoverpadConstructor), "SpawnHoverbikeAsync")]
         internal class HoverpadConstructor_Patch
         {
             public static void Postfix(HoverpadConstructor __instance)
@@ -1709,7 +1695,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(Constructor), "OnConstructionDone")]
+        //[HarmonyPatch(typeof(Constructor), "OnConstructionDone")]
         internal class Constructor_OnConstructionDone_Patch
         {
             public static void Postfix(Constructor __instance, GameObject constructedObject)
@@ -1742,7 +1728,7 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(CrafterLogic), "TryPickupSingleAsync")]
+        //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingleAsync")]
         internal class CrafterLogic_TryPickupSingleAsync_Patch
         {
             public static void Postfix(TechType techType)
@@ -1751,8 +1737,8 @@ namespace Stats_Tracker
                 finishedCrafting = true;
             }
         }
-             
-        [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
+
+        //[HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
         internal class CrafterLogic_NotifyCraftEnd_Patch
         {
             public static void Postfix(GameObject target, TechType techType)
@@ -1773,24 +1759,24 @@ namespace Stats_Tracker
                 else
                     Main.config.itemsCrafted[saveSlot][name] = 1;
 
-                if (Main.config.itemsCraftedTotal.ContainsKey(name))
-                    Main.config.itemsCraftedTotal[name]++;
-                else
-                    Main.config.itemsCraftedTotal[name] = 1;
+                //if (Main.config.itemsCraftedTotal.ContainsKey(name))
+                //    Main.config.itemsCraftedTotal[name]++;
+                //else
+                //    Main.config.itemsCraftedTotal[name] = 1;
             }
         }
 
-        [HarmonyPatch(typeof(Bed))]
+        ////[HarmonyPatch(typeof(Bed))]
         internal class Bed_Patch
         {
-            [HarmonyPatch("EnterInUseMode")]
+            //[HarmonyPatch("EnterInUseMode")]
             [HarmonyPostfix]
             public static void EnterInUseModePostfix(Bed __instance)
             {
                 bedTimeStart = GetTimePlayed();
                 //AddDebug("EnterInUseMode ");
             }
-            [HarmonyPatch("ExitInUseMode")]
+            //[HarmonyPatch("ExitInUseMode")]
             [HarmonyPostfix]
             public static void ExitInUseModePostfix(Bed __instance)
             {
@@ -1801,52 +1787,6 @@ namespace Stats_Tracker
             }
         }
 
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "Add", new Type[] { typeof(string), typeof(PDAEncyclopedia.Entry), typeof})]
-        internal class PDAEncyclopedia_Add_Patch
-        {
-            public static void Postfix(string key, PDAEncyclopedia.Entry entry)
-            {
-                //uGUI_ListEntry uGuiListEntry = item as uGUI_ListEntry;
-                //AddDebug("Add " + key);
-                //Main.Log("Add " + key);
-            }
-        }
-
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "OnAdd")]
-        internal class PDAEncyclopedia_OnAdd_Patch
-        {
-            public static void Postfix(CraftNode node, bool verbose)
-            {
-                //uGUI_ListEntry uGuiListEntry = item as uGUI_ListEntry;
-                //AddDebug("Add " + node.id);
-            }
-        }
-
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "Initialize")]
-        internal class PDAEncyclopedia_Initialize_Patch
-        {
-            public static void Postfix(PDAData pdaData)
-            {
-                mapping = PDAEncyclopedia.mapping;
-                //Log("mapping count " + mapping.Count);
-                //foreach (var item in mapping)
-                //{
-                //Log(item.Key + " " + item.Value);
-                //}
-            }
-        }
-
-        //[HarmonyPatch(typeof(PDAScanner), "NotifyRemove")]
-        internal class PDAScanner_NotifyRemove_Patch
-        {
-            public static void Postfix(PDAScanner.Entry entry)
-            {
-                if (PDAScanner.onRemove == null)
-                    return;
-
-                //AddDebug("NotifyRemove " + entry.techType);
-            }
-        }
 
         public enum TravelMode
         {

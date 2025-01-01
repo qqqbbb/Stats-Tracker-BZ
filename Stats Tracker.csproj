@@ -66,19 +66,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
+    <Compile Include="Patch_old.cs" />
+    <Compile Include="Stats_Display.cs" />
     <Compile Include="Testing.cs" />
+    <Compile Include="UnsavedData.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Stats_Patch.cs" />
+    <Compile Include="Patches.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Localization\English.json" />
+    <None Include="Localization\Russian.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\$(TargetName)"
 copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\$(TargetName)\$(TargetFileName)"
-	</PostBuildEvent>
+	
+mkdir "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\$(TargetName)\Localization"
+copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\$(TargetName)\Localization"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

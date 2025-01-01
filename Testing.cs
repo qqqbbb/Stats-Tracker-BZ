@@ -1,20 +1,17 @@
 ﻿
-//using HarmonyLib;
-//using System.Reflection;
-//using System;
-//using System.Collections;
-//using System.Collections.Generic;
+using HarmonyLib;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-//using FMOD;
-//using FMOD.Studio;
-//using FMODUnity;
-//using System.Text;
 using static ErrorMessage;
 
 namespace Stats_Tracker
 {
     class Testing
     {
+        static BodyTemperature bodyTemperature;
+
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -22,12 +19,22 @@ namespace Stats_Tracker
             //static HashSet<string> biomeNames = new HashSet<string>();
             static void Postfix(Player __instance)
             {
-                //string biomeName = Stats_Patch.GetBiomeName(LargeWorld.main.GetBiome(Player.main.transform.position));
+                //AddDebug("biomeName: " + biomeName);
+                //AddDebug(PlatformUtils.main.GetServices().GetRichPresence());
                 //bool inLifepodDrop = Player.main.currentInterior is LifepodDrop;
                 //AddDebug("inLifepodDrop " + inLifepodDrop);
+                if (bodyTemperature == null)
+                    bodyTemperature = __instance.GetComponent<BodyTemperature>();
+
+                //AddDebug("isExposed " + bodyTemperature.isExposed);
+                //AddDebug("GetWaterTemperature " + (int)bodyTemperature.GetWaterTemperature());
+                //AddDebug("GetAmbientTemperature " + (int)bodyTemperature.GetAmbientTemperature());
+                //AddDebug("CalculateEffectiveAmbientTemperature " + (int)bodyTemperature.CalculateEffectiveAmbientTemperature());
+                //AddDebug("effectiveAmbientTemperature " + (int)bodyTemperature.effectiveAmbientTemperature);
+
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 //biomeNames.Add(biomeName);
-                if (Input.GetKey(KeyCode.B))
+                if (Input.GetKeyDown(KeyCode.B))
                 {
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
@@ -46,14 +53,19 @@ namespace Stats_Tracker
                     //Inventory.main.container.Resize(8,8);   GetPlayerBiome()
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
-                else if (Input.GetKey(KeyCode.C))
+                else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                        Player.main.GetComponent<Survival>().water++;
-                    else
-                        Player.main.GetComponent<Survival>().food++;
+
+                    //if (Input.GetKey(KeyCode.LeftShift))
+                    //    Player.main.GetComponent<Survival>().water++;
+                    //else
+                    //    Player.main.GetComponent<Survival>().food++;
                 }
-                else if (Input.GetKey(KeyCode.X))
+                else if (Input.GetKeyDown(KeyCode.V))
+                {
+
+                }
+                else if (Input.GetKeyDown(KeyCode.X))
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                         //survival.water--;
@@ -62,7 +74,7 @@ namespace Stats_Tracker
                         //survival.food--;
                         __instance.liveMixin.health++;
                 }
-                else if(Input.GetKey(KeyCode.Z))
+                else if (Input.GetKeyDown(KeyCode.Z))
                 {
                     //AddDebug("timePassedSinceOrigin " + DayNightCycle.main.timePassedSinceOrigin);
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
@@ -79,7 +91,7 @@ namespace Stats_Tracker
                         if (pi)
                         {
                             AddDebug("target " + pi.gameObject.name);
-                            AddDebug("target TechType " + CraftData.GetTechType( pi.gameObject));
+                            AddDebug("target TechType " + CraftData.GetTechType(pi.gameObject));
                         }
                     }
                     if (Player.main.guiHand.activeTarget)
@@ -106,6 +118,14 @@ namespace Stats_Tracker
         }
 
 
+        //[HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float), typeof(Targeting.FilterRaycast) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Normal })]
+        class Targeting_GetTarget_PostfixPatch
+        {
+            public static void Postfix(ref GameObject result)
+            {
+                //AddDebug(" Targeting GetTarget  " + result.name);
+            }
+        }
 
     }
 }

@@ -1,109 +1,53 @@
 ﻿
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Logging;
 using HarmonyLib;
-using System.Reflection;
+using Nautilus.Assets;
+using Nautilus.Assets.Gadgets;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Handlers;
+using Nautilus.Utility;
+using Steamworks;
 using System;
 using System.Collections.Generic;
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Bootstrap;
-using Nautilus.Handlers;
-using Nautilus.Assets;
-using Nautilus.Utility;
-using Nautilus.Assets.PrefabTemplates;
-using Nautilus.Assets.Gadgets;
+using System.Reflection;
 using static ErrorMessage;
-using static OVRPlugin;
-using Steamworks;
+
+//test currentSub.internalTemperature
 
 namespace Stats_Tracker
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
     public class Main : BaseUnityPlugin
     {
-        private const string
+        public const string
             MODNAME = "Stats Tracker",
             GUID = "qqqbbb.subnauticaBZ.statsTracker",
-            VERSION = "2.0.0";
+            VERSION = "3.1.0";
+        public static ManualLogSource logger;
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
         public static bool setupDone = false;
 
-        public static void PrepareSaveSlot(string saveSlot)
+
+        private void Awake()
         {
-            //AddDebug("PrepareSaveSlot  " + saveSlot);
-            //Log("PrepareSaveSlot  " + saveSlot);
-            config.playerDeaths[saveSlot] = 0;
-            config.timePlayed[saveSlot] = TimeSpan.Zero;
-            config.healthLost[saveSlot] = 0;
-            config.foodEaten[saveSlot] = new Dictionary<string, float>();
-            config.waterDrunk[saveSlot] = 0;
-            config.distanceTraveled[saveSlot] = 0;
-            config.maxDepth[saveSlot] = 0;
-            config.distanceTraveledSwim[saveSlot] = 0;
-            config.distanceTraveledCreature[saveSlot] = 0;
-            config.distanceTraveledWalk[saveSlot] = 0;
-            config.distanceTraveledSeaglide[saveSlot] = 0;
-            config.distanceTraveledSnowfox[saveSlot] = 0;
-            config.distanceTraveledExosuit[saveSlot] = 0;
-            config.distanceTraveledSeatruck[saveSlot] = 0;
-            config.snowfoxesBuilt[saveSlot] = 0;
-            config.exosuitsBuilt[saveSlot] = 0;
-            config.seatrucksBuilt[saveSlot] = 0;
-            config.snowfoxesLost[saveSlot] = 0;
-            config.exosuitsLost[saveSlot] = 0;
-            config.seatrucksLost[saveSlot] = 0;
-            config.timeSlept[saveSlot] = TimeSpan.Zero;
-            config.timeSwam[saveSlot] = TimeSpan.Zero;
-            config.timeWalked[saveSlot] = TimeSpan.Zero;
-            config.timeSnowfox[saveSlot] = TimeSpan.Zero;
-            config.timeExosuit[saveSlot] = TimeSpan.Zero;
-            config.timeSeatruck[saveSlot] = TimeSpan.Zero;
-            config.timeBase[saveSlot] = TimeSpan.Zero;
-            config.timeEscapePod[saveSlot] = TimeSpan.Zero;
-            config.baseRoomsBuilt[saveSlot] = 0;
-            config.baseCorridorsBuilt[saveSlot] = 0;
-            config.basePower[saveSlot] = 0;
-            config.objectsScanned[saveSlot] = 0;
-            config.blueprintsUnlocked[saveSlot] = 0;
-            config.blueprintsFromDatabox[saveSlot] = 0;
-            config.floraFound[saveSlot] = new HashSet<string>();
-            config.faunaFound[saveSlot] = new HashSet<string>();
-            config.leviathanFound[saveSlot] = new HashSet<string>();
-            config.coralFound[saveSlot] = new HashSet<string>();
-            config.animalsKilled[saveSlot] = new Dictionary<string, int>();
-            config.plantsKilled[saveSlot] = new Dictionary<string, int>();
-            config.coralKilled[saveSlot] = new Dictionary<string, int>();
-            config.leviathansKilled[saveSlot] = new Dictionary<string, int>();
-            config.plantsRaised[saveSlot] = new Dictionary<string, int>();
-            config.eggsHatched[saveSlot] = new Dictionary<string, int>();
-            config.itemsCrafted[saveSlot] = new Dictionary<string, int>();
-            config.craftingResourcesUsed[saveSlot] = new Dictionary<string, float>();
-            config.craftingResourcesUsed_[saveSlot] = new Dictionary<string, int>();
-            config.biomesFound[saveSlot] = new HashSet<string>();
-            config.jeweledDiskFound[saveSlot] = false;
-            config.storedBase[saveSlot] = new Dictionary<string, int>();
-            config.storedLifePod[saveSlot] = new Dictionary<string, int>();
-            config.storedSeatruck[saveSlot] = new Dictionary<string, int>();
-            config.storedOutside[saveSlot] = new Dictionary<string, int>();
-            config.seatrucksModulesBuilt[saveSlot] = 0;
-            config.seatruckModulesLost[saveSlot] = 0;
-            config.medkitsUsed[saveSlot] = 0;
-            config.Save();
+            logger = Logger;
         }
 
-        public static void Setup()
+        private void StartLoadingSetup()
         {
-            string saveSlot = SaveLoadManager.main.currentSlot;
-            Stats_Patch.saveSlot = saveSlot;
-            Stats_Patch.timeLastUpdate = Stats_Patch.GetTimePlayed();
+            //AddDebug("StartLoadingSetup " + SaveLoadManager.main.currentSlot);
+            //Logger.LogInfo("StartLoadingSetup " + SaveLoadManager.main.currentSlot);
+            Stats_Display.saveSlot = SaveLoadManager.main.currentSlot;
+            Patches.saveSlot = SaveLoadManager.main.currentSlot;
+        }
 
-            if (!config.timePlayed.ContainsKey(saveSlot))
-                PrepareSaveSlot(saveSlot);
-            //if (!config.timeGameStarted.ContainsKey(saveSlot))
-            //    config.timeGameStarted[saveSlot] = 0;
-
-            //AddDebug("SETUP " + saveSlot);
-            //Stats_Patch.ModCompat();
-            foreach (var s in Stats_Patch.myStrings)
+        public static void FinishLoadingSetup()
+        {
+            //AddDebug(" FinishLoadingSetup");
+            //Patches.timeLastUpdate = Patches.GetTimePlayed();
+            foreach (var s in Stats_Display.myStrings)
                 PDAEncyclopedia.Add(s.Key, false, false);
 
             setupDone = true;
@@ -111,47 +55,125 @@ namespace Stats_Tracker
 
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
         internal class WaitScreen_Hide_Patch
-        {
+        { // fires after game loads
             public static void Postfix(WaitScreen __instance)
             {
-                //AddDebug(" WaitScreen Hide  !!!");
-                Setup();
+                //AddDebug(" WaitScreen Hide");
+                //if (uGUI.isLoading)
+                {
+                    FinishLoadingSetup();
+                }
             }
+        }
+
+        public static void DeleteSaveSlotData(string saveSlot)
+        {
+            //AddDebug("DeleteSaveSlotData  " + saveSlot);
+            //logger.LogInfo("DeleteSaveSlotData " + saveSlot);
+            config.playerDeaths.Remove(saveSlot);
+            config.timePlayed.Remove(saveSlot);
+            config.healthLost.Remove(saveSlot);
+            config.foodEaten.Remove(saveSlot);
+            config.waterDrunk.Remove(saveSlot);
+            config.distanceTraveled.Remove(saveSlot);
+            config.maxDepth.Remove(saveSlot);
+            config.distanceTraveledSwim.Remove(saveSlot);
+            config.distanceTraveledWalk.Remove(saveSlot);
+            config.distanceTraveledSeaglide.Remove(saveSlot);
+            config.distanceTraveledVehicle.Remove(saveSlot);
+            config.builderToolBuilt.Remove(saveSlot);
+            config.constructorBuilt.Remove(saveSlot);
+            config.vehiclesLost.Remove(saveSlot);
+            config.timeSlept.Remove(saveSlot);
+            config.timeSwam.Remove(saveSlot);
+            config.timeWalked.Remove(saveSlot);
+            config.timeVehicles.Remove(saveSlot);
+            config.timeBase.Remove(saveSlot);
+            config.timeEscapePod.Remove(saveSlot);
+            config.baseRoomsBuilt.Remove(saveSlot);
+            config.baseCorridorsBuilt.Remove(saveSlot);
+            config.basePower.Remove(saveSlot);
+            config.objectsScanned.Remove(saveSlot);
+            config.blueprintsUnlocked.Remove(saveSlot);
+            config.blueprintsFromDatabox.Remove(saveSlot);
+            config.floraFound.Remove(saveSlot);
+            config.faunaFound.Remove(saveSlot);
+            config.leviathanFound.Remove(saveSlot);
+            config.coralFound.Remove(saveSlot);
+            config.animalsKilled.Remove(saveSlot);
+            config.plantsKilled.Remove(saveSlot);
+            config.coralKilled.Remove(saveSlot);
+            config.leviathansKilled.Remove(saveSlot);
+            config.plantsGrown.Remove(saveSlot);
+            config.eggsHatched.Remove(saveSlot);
+            config.itemsCrafted.Remove(saveSlot);
+            config.timeBiomes.Remove(saveSlot);
+            config.medkitsUsed.Remove(saveSlot);
+            config.pickedUpItems.Remove(saveSlot);
+            config.minTemp.Remove(saveSlot);
+            config.minVehicleTemp.Remove(saveSlot);
+            config.maxTemp.Remove(saveSlot);
+            config.maxVehicleTemp.Remove(saveSlot);
+            config.Save();
         }
 
         static void SaveData()
         {
-            //config.baseRoomsBuiltTotal = Stats_Patch.baseRoomsBuiltTotal;
-            config.timePlayed[SaveLoadManager.main.currentSlot] = Stats_Patch.GetTimePlayed();
-            config.basePower[SaveLoadManager.main.currentSlot] = Stats_Patch.basePower;
-            config.Save();
+            //logger.LogInfo("SaveData " + SaveLoadManager.main.currentSlot);
+            UnsavedData.SaveData(SaveLoadManager.main.currentSlot);
+            UnsavedData.ResetData();
+        }
+
+        [HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
+        internal class SaveLoadManager_ClearSlotAsync_Patch
+        {
+            public static void Postfix(SaveLoadManager __instance, string slotName)
+            { // runs when starting new game
+                //AddDebug("ClearSlotAsync " + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                //logger.LogInfo("ClearSlotAsync" + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                if (config.timePlayed.ContainsKey(slotName))
+                    DeleteSaveSlotData(slotName);
+            }
         }
 
         public static void CleanUp()
         {
-            //AddDebug("CleanUp");
+            //AddDebug("CleanUp ");
+            //logger.LogInfo("CleanUp " + SaveLoadManager.main.currentSlot);
             setupDone = false;
-            Stats_Patch.powerRelays = new HashSet<PowerRelay>();
-            Stats_Patch.timeLastUpdate = TimeSpan.Zero;
-            config.Load();
+            Patches.timeLastUpdate = TimeSpan.Zero;
+            UnsavedData.ResetData();
+            UnsavedData.basePowerSources.Clear();
+            UnsavedData.bases.Clear();
         }
 
         private void Start()
         {
+            SaveUtils.RegisterOnStartLoadingEvent(StartLoadingSetup);
+            SaveUtils.RegisterOnQuitEvent(CleanUp);
+            LanguageHandler.RegisterLocalizationFolder();
+            //SaveUtils.RegisterOnFinishLoadingEvent(FinishLoadingSetup);
+            Stats_Display.AddEntries();
+            //AddTechTypesToClassTechtable();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            SaveUtils.RegisterOnSaveEvent(SaveData);
-            SaveUtils.RegisterOnQuitEvent(CleanUp);
         }
 
-        [HarmonyPatch(typeof(Player), "Awake")]
-        internal class PlayerAwakePatcher
+        [HarmonyPatch(typeof(SaveLoadManager), "SaveToDeepStorageAsync", new Type[0])]
+        internal class SaveLoadManager_SaveToDeepStorageAsync_Patch
         {
-            public static void Prefix()
-            { // must be prefix
-                Stats_Patch.AddEntries();
+            public static void Postfix(SaveLoadManager __instance)
+            { // runs after nautilus SaveEvent
+                //AddDebug("SaveToDeepStorageAsync");
+                SaveData();
             }
         }
+
+        //private static void AddTechTypesToClassTechtable()
+        //{
+        //    CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
+        //    CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
+        //}
 
     }
 }
