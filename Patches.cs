@@ -16,7 +16,6 @@ namespace Stats_Tracker
         static LiveMixin killedLM = null;
         public static string saveSlot;
         public static TimeSpan timeLastUpdate = default;
-        public const float gameSecondMultiplier = 72f;
         public static HashSet<TechType> roomTypes = new HashSet<TechType> { TechType.BaseRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseLargeRoom, TechType.BaseControlRoom, TechType.BaseMoonpoolExpansion };
         public static Dictionary<Base.CellType, TechType> roomTypeToTechtype = new Dictionary<Base.CellType, TechType>
         {
@@ -55,7 +54,7 @@ namespace Stats_Tracker
 
         public static TimeSpan GetTimePlayed()
         {
-            return new TimeSpan(0, 0, Mathf.FloorToInt(DayNightCycle.main.timePassedAsFloat * gameSecondMultiplier)) - timePlayedAtGameStart;
+            return new TimeSpan(0, 0, Mathf.FloorToInt(DayNightCycle.main.timePassedAsFloat * DayNightCycle.main.gameSecondMultiplier)) - timePlayedAtGameStart;
         }
 
         static float GetItemMass(TechType techType)
@@ -220,7 +219,7 @@ namespace Stats_Tracker
                 if (!Main.config.modEnabled)
                     return true;
 
-                if (uGUI.isLoading || string.IsNullOrEmpty(saveSlot))
+                if (Main.setupDone == false || string.IsNullOrEmpty(saveSlot))
                     return false;
 
                 if (__instance.isNewBorn && startTracking == false)
@@ -253,11 +252,12 @@ namespace Stats_Tracker
             }
         }
 
-        [HarmonyPatch(typeof(IntroVignette), "OnDone")]
-        class IntroVignette_OnDone_Patch
+        [HarmonyPatch(typeof(IntroDropshipExplode), "Explode")]
+        class IntroDropshipExplode_Explode_Patch
         {
-            static void Postfix(IntroVignette __instance)
-            {
+            static void Postfix(IntroDropshipExplode __instance)
+            {  // need this to get correct traveled distance 
+                //AddDebug("Explode");
                 startTracking = true;
             }
         }

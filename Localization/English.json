@@ -17,7 +17,9 @@
   "ST_unknown_biome": "Unknown Biome",
 
   "ST_kilograms": "kg",
+  "ST_pounds": "lbs",
   "ST_liters": "liters",
+  "ST_gallons": "gallons",
   "ST_kilometer": "km",
   "ST_kilometers": "km",
   "ST_mile": "mile",

@@ -1,20 +1,13 @@
 ﻿
 using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Assets;
-using Nautilus.Assets.Gadgets;
-using Nautilus.Assets.PrefabTemplates;
 using Nautilus.Handlers;
 using Nautilus.Utility;
-using Steamworks;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using static ErrorMessage;
-
-//test currentSub.internalTemperature
 
 namespace Stats_Tracker
 {
@@ -24,7 +17,7 @@ namespace Stats_Tracker
         public const string
             MODNAME = "Stats Tracker",
             GUID = "qqqbbb.subnauticaBZ.statsTracker",
-            VERSION = "3.1.0";
+            VERSION = "4.0.0";
         public static ManualLogSource logger;
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
         public static bool setupDone = false;
@@ -47,23 +40,10 @@ namespace Stats_Tracker
         {
             //AddDebug(" FinishLoadingSetup");
             //Patches.timeLastUpdate = Patches.GetTimePlayed();
-            foreach (var s in Stats_Display.myStrings)
-                PDAEncyclopedia.Add(s.Key, false, false);
+            foreach (var kv in Stats_Display.myStrings)
+                PDAEncyclopedia.Add(kv.Key, false, false);
 
             setupDone = true;
-        }
-
-        [HarmonyPatch(typeof(WaitScreen), "Hide")]
-        internal class WaitScreen_Hide_Patch
-        { // fires after game loads
-            public static void Postfix(WaitScreen __instance)
-            {
-                //AddDebug(" WaitScreen Hide");
-                //if (uGUI.isLoading)
-                {
-                    FinishLoadingSetup();
-                }
-            }
         }
 
         public static void DeleteSaveSlotData(string saveSlot)
@@ -149,12 +129,11 @@ namespace Stats_Tracker
 
         private void Start()
         {
-            SaveUtils.RegisterOnStartLoadingEvent(StartLoadingSetup);
+            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartLoadingSetup());
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             LanguageHandler.RegisterLocalizationFolder();
-            //SaveUtils.RegisterOnFinishLoadingEvent(FinishLoadingSetup);
+            WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => FinishLoadingSetup());
             Stats_Display.AddEntries();
-            //AddTechTypesToClassTechtable();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
         }
@@ -168,12 +147,6 @@ namespace Stats_Tracker
                 SaveData();
             }
         }
-
-        //private static void AddTechTypesToClassTechtable()
-        //{
-        //    CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
-        //    CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
-        //}
 
     }
 }
