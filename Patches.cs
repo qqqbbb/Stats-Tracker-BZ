@@ -859,5 +859,22 @@ namespace Stats_Tracker
             }
         }
 
+        [HarmonyPatch(typeof(WaterParkCreature), "InitializeCreatureBornInWaterPark")]
+        class GWaterParkCreature_InitializeCreatureBornInWaterPark_patch
+        {
+            public static void Postfix(WaterParkCreature __instance)
+            {
+                if (!Main.config.modEnabled)
+                    return;
+
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt == TechType.None)
+                    return;
+
+                UnsavedData.creaturesBred.AddValue(tt, 1);
+                //AddDebug("InitializeCreatureBornInWaterPark  " + tt);
+            }
+        }
+
     }
 }

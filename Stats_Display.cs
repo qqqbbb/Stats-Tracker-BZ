@@ -758,17 +758,6 @@ namespace Stats_Tracker
             return sortedDic;
         }
 
-        private static SortedDictionary<string, float> GetTranslatedSortedDic(Dictionary<TechType, float> dic)
-        {
-            SortedDictionary<string, float> sortedDic = new SortedDictionary<string, float>();
-            foreach (var kv in dic)
-            {
-                if (kv.Value > 0)
-                    sortedDic.Add(Language.main.Get(kv.Key), kv.Value);
-            }
-            return sortedDic;
-        }
-
         private static SortedDictionary<string, float> GetTranslatedSortedDic(Dictionary<string, float> dic)
         {
             SortedDictionary<string, float> sortedDic = new SortedDictionary<string, float>();
@@ -800,10 +789,8 @@ namespace Stats_Tracker
             sb.AppendLine(Language.main.Get(title) + ValuesSum);
             SortedDictionary<string, int> sortedDic = GetTranslatedSortedDic(dic);
             foreach (var kv in sortedDic)
-            {
-                if (kv.Value > 0)
-                    sb.AppendLine("     " + kv.Key + ": " + kv.Value);
-            }
+                sb.AppendLine("     " + kv.Key + ": " + kv.Value);
+
             sb.AppendLine();
         }
 
@@ -880,6 +867,7 @@ namespace Stats_Tracker
             AppendDic(sb, MergeDics(Main.config.itemsCrafted, UnsavedData.itemsCrafted), "ST_items_crafted");
             AppendDic(sb, MergeDics(Main.config.plantsGrown, UnsavedData.plantsGrown), "ST_plants_grown");
             AppendDic(sb, MergeDics(Main.config.eggsHatched, UnsavedData.eggsHatched), "ST_hatched_eggs");
+            AppendDic(sb, MergeDics(Main.config.creaturesBred, UnsavedData.creaturesBred), "ST_creatures_bred");
             GetDiscoverStats(sb);
             GetKilledStats(sb);
             return sb.ToString();
@@ -901,6 +889,7 @@ namespace Stats_Tracker
             AppendDic(sb, GetDicGlobal(Main.config.itemsCrafted), "ST_items_crafted");
             AppendDic(sb, GetDicGlobal(Main.config.plantsGrown), "ST_plants_grown");
             AppendDic(sb, GetDicGlobal(Main.config.eggsHatched), "ST_hatched_eggs");
+            AppendDic(sb, GetDicGlobal(Main.config.creaturesBred), "ST_creatures_bred");
             GetGlobalDiscoverStats(sb);
             GetKilledGlobalStats(sb);
             return sb.ToString();

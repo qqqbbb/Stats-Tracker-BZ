@@ -17,7 +17,7 @@ namespace Stats_Tracker
         public const string
             MODNAME = "Stats Tracker",
             GUID = "qqqbbb.subnauticaBZ.statsTracker",
-            VERSION = "4.0.0";
+            VERSION = "4.1.0";
         public static ManualLogSource logger;
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
         public static bool setupDone = false;
@@ -44,6 +44,7 @@ namespace Stats_Tracker
                 PDAEncyclopedia.Add(kv.Key, false, false);
 
             setupDone = true;
+            logger.LogInfo($"{MODNAME} {VERSION} FinishLoadingSetup done");
         }
 
         public static void DeleteSaveSlotData(string saveSlot)
@@ -86,6 +87,7 @@ namespace Stats_Tracker
             config.leviathansKilled.Remove(saveSlot);
             config.plantsGrown.Remove(saveSlot);
             config.eggsHatched.Remove(saveSlot);
+            config.creaturesBred.Remove(saveSlot);
             config.itemsCrafted.Remove(saveSlot);
             config.timeBiomes.Remove(saveSlot);
             config.medkitsUsed.Remove(saveSlot);
@@ -136,6 +138,7 @@ namespace Stats_Tracker
             Stats_Display.AddEntries();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
+            logger.LogInfo($"{MODNAME} {VERSION} Start done");
         }
 
         [HarmonyPatch(typeof(SaveLoadManager), "SaveToDeepStorageAsync", new Type[0])]
