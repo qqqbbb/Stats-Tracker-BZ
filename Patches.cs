@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Stats_Tracker
 {
@@ -892,11 +891,12 @@ namespace Stats_Tracker
             [HarmonyPostfix, HarmonyPatch("ExitInUseMode")]
             public static void ExitInUseModePostfix(Bed __instance)
             {
-                if (!ConfigMenu.modEnabled.Value)
+                if (!ConfigMenu.modEnabled.Value || bedTimeStart == default)
                     return;
 
                 TimeSpan timeSlept = GetTimeSpanPlayed() - bedTimeStart;
                 UnsavedData.timeSlept += timeSlept;
+                bedTimeStart = default;
                 //AddDebug("ExitInUseMode " );
             }
         }
@@ -932,14 +932,13 @@ namespace Stats_Tracker
         [HarmonyPatch(typeof(CreatureEgg), "Hatch")]
         internal class CreatureEgg_Hatch_Patch
         {
-
             public static void Postfix(CreatureEgg __instance)
             {
                 if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 TechType tt = __instance.creatureType;
-                AddDebug("CreatureEgg Hatch  " + tt);
+                //AddDebug("CreatureEgg Hatch  " + tt);
                 if (tt == TechType.None)
                     return;
 
