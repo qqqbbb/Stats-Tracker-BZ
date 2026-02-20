@@ -1,12 +1,21 @@
-﻿
-using BepInEx;
+﻿using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Assets;
+using Nautilus.Assets.Gadgets;
+using Nautilus.Assets.PrefabTemplates;
 using Nautilus.Handlers;
+using Nautilus.Options;
 using Nautilus.Utility;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Stats_Tracker
@@ -17,11 +26,13 @@ namespace Stats_Tracker
         public const string
             MODNAME = "Stats Tracker",
             GUID = "qqqbbb.subnauticaBZ.statsTracker",
-            VERSION = "4.1.0";
+            VERSION = "4.2.0";
         public static ManualLogSource logger;
-        public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
         public static bool setupDone = false;
-
+        public static OptionsMenu options;
+        public static ConfigFile configMenu;
+        public static ConfigMain configMain;
+        static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "configMenu.cfg";
 
         private void Awake()
         {
@@ -34,15 +45,16 @@ namespace Stats_Tracker
             //Logger.LogInfo("StartLoadingSetup " + SaveLoadManager.main.currentSlot);
             Stats_Display.saveSlot = SaveLoadManager.main.currentSlot;
             Patches.saveSlot = SaveLoadManager.main.currentSlot;
+            FixSquidSharkKills();
+            FixBornCreatures();
+            Stats_Display.CreateMyEntries();
         }
 
         public static void FinishLoadingSetup()
         {
             //AddDebug(" FinishLoadingSetup");
             //Patches.timeLastUpdate = Patches.GetTimePlayed();
-            foreach (var kv in Stats_Display.myStrings)
-                PDAEncyclopedia.Add(kv.Key, false, false);
-
+            Stats_Display.AddMyEntries();
             setupDone = true;
             logger.LogInfo($"{MODNAME} {VERSION} FinishLoadingSetup done");
         }
@@ -51,52 +63,56 @@ namespace Stats_Tracker
         {
             //AddDebug("DeleteSaveSlotData  " + saveSlot);
             //logger.LogInfo("DeleteSaveSlotData " + saveSlot);
-            config.playerDeaths.Remove(saveSlot);
-            config.timePlayed.Remove(saveSlot);
-            config.healthLost.Remove(saveSlot);
-            config.foodEaten.Remove(saveSlot);
-            config.waterDrunk.Remove(saveSlot);
-            config.distanceTraveled.Remove(saveSlot);
-            config.maxDepth.Remove(saveSlot);
-            config.distanceTraveledSwim.Remove(saveSlot);
-            config.distanceTraveledWalk.Remove(saveSlot);
-            config.distanceTraveledSeaglide.Remove(saveSlot);
-            config.distanceTraveledVehicle.Remove(saveSlot);
-            config.builderToolBuilt.Remove(saveSlot);
-            config.constructorBuilt.Remove(saveSlot);
-            config.vehiclesLost.Remove(saveSlot);
-            config.timeSlept.Remove(saveSlot);
-            config.timeSwam.Remove(saveSlot);
-            config.timeWalked.Remove(saveSlot);
-            config.timeVehicles.Remove(saveSlot);
-            config.timeBase.Remove(saveSlot);
-            config.timeEscapePod.Remove(saveSlot);
-            config.baseRoomsBuilt.Remove(saveSlot);
-            config.baseCorridorsBuilt.Remove(saveSlot);
-            config.basePower.Remove(saveSlot);
-            config.objectsScanned.Remove(saveSlot);
-            config.blueprintsUnlocked.Remove(saveSlot);
-            config.blueprintsFromDatabox.Remove(saveSlot);
-            config.floraFound.Remove(saveSlot);
-            config.faunaFound.Remove(saveSlot);
-            config.leviathanFound.Remove(saveSlot);
-            config.coralFound.Remove(saveSlot);
-            config.animalsKilled.Remove(saveSlot);
-            config.plantsKilled.Remove(saveSlot);
-            config.coralKilled.Remove(saveSlot);
-            config.leviathansKilled.Remove(saveSlot);
-            config.plantsGrown.Remove(saveSlot);
-            config.eggsHatched.Remove(saveSlot);
-            config.creaturesBred.Remove(saveSlot);
-            config.itemsCrafted.Remove(saveSlot);
-            config.timeBiomes.Remove(saveSlot);
-            config.medkitsUsed.Remove(saveSlot);
-            config.pickedUpItems.Remove(saveSlot);
-            config.minTemp.Remove(saveSlot);
-            config.minVehicleTemp.Remove(saveSlot);
-            config.maxTemp.Remove(saveSlot);
-            config.maxVehicleTemp.Remove(saveSlot);
-            config.Save();
+            if (configMain.timePlayed.ContainsKey(saveSlot) == false)
+                return;
+
+            configMain.playerDeaths.Remove(saveSlot);
+            configMain.timePlayed.Remove(saveSlot);
+            configMain.healthLost.Remove(saveSlot);
+            configMain.foodEaten.Remove(saveSlot);
+            configMain.waterDrunk.Remove(saveSlot);
+            configMain.distanceTraveled.Remove(saveSlot);
+            configMain.maxDepth.Remove(saveSlot);
+            configMain.distanceTraveledSwim.Remove(saveSlot);
+            configMain.distanceTraveledWalk.Remove(saveSlot);
+            configMain.distanceTraveledSeaglide.Remove(saveSlot);
+            configMain.distanceTraveledVehicle.Remove(saveSlot);
+            configMain.builderToolBuilt.Remove(saveSlot);
+            configMain.constructorBuilt.Remove(saveSlot);
+            configMain.vehiclesLost.Remove(saveSlot);
+            configMain.timeSlept.Remove(saveSlot);
+            configMain.timeSwam.Remove(saveSlot);
+            configMain.timeWalked.Remove(saveSlot);
+            configMain.timeVehicles.Remove(saveSlot);
+            configMain.timeBase.Remove(saveSlot);
+            configMain.timePrecursor.Remove(saveSlot);
+            configMain.timeEscapePod.Remove(saveSlot);
+            configMain.baseRoomsBuilt.Remove(saveSlot);
+            configMain.baseCorridorsBuilt.Remove(saveSlot);
+            configMain.basePower.Remove(saveSlot);
+            configMain.objectsScanned.Remove(saveSlot);
+            configMain.blueprintsUnlocked.Remove(saveSlot);
+            configMain.blueprintsFromDatabox.Remove(saveSlot);
+            configMain.floraFound.Remove(saveSlot);
+            configMain.faunaFound.Remove(saveSlot);
+            configMain.leviathanFound.Remove(saveSlot);
+            configMain.coralFound.Remove(saveSlot);
+            configMain.animalsKilled.Remove(saveSlot);
+            configMain.plantsKilled.Remove(saveSlot);
+            configMain.coralKilled.Remove(saveSlot);
+            configMain.leviathansKilled.Remove(saveSlot);
+            configMain.plantsGrown.Remove(saveSlot);
+            configMain.eggsHatched.Remove(saveSlot);
+            configMain.creaturesBred.Remove(saveSlot);
+            configMain.itemsCrafted.Remove(saveSlot);
+            configMain.timeBiomes.Remove(saveSlot);
+            configMain.medkitsUsed.Remove(saveSlot);
+            configMain.pickedUpItems.Remove(saveSlot);
+            configMain.minTemp.Remove(saveSlot);
+            configMain.minVehicleTemp.Remove(saveSlot);
+            configMain.maxTemp.Remove(saveSlot);
+            configMain.maxVehicleTemp.Remove(saveSlot);
+            configMain.Save();
         }
 
         static void SaveData()
@@ -111,19 +127,18 @@ namespace Stats_Tracker
         {
             public static void Postfix(SaveLoadManager __instance, string slotName)
             { // runs when starting new game
-                //AddDebug("ClearSlotAsync " + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
-                //logger.LogInfo("ClearSlotAsync" + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
-                if (config.timePlayed.ContainsKey(slotName))
-                    DeleteSaveSlotData(slotName);
+              //AddDebug("ClearSlotAsync " + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+              //logger.LogInfo("ClearSlotAsync" + slotName + " WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                DeleteSaveSlotData(slotName);
             }
         }
 
         public static void CleanUp()
         {
             //AddDebug("CleanUp ");
-            //logger.LogInfo("CleanUp " + SaveLoadManager.main.currentSlot);
+            //logger.LogInfo("stats tracker CleanUp " + SaveLoadManager.main.currentSlot);
             setupDone = false;
-            Patches.timeLastUpdate = TimeSpan.Zero;
+            Patches.CleanUp();
             UnsavedData.ResetData();
             UnsavedData.basePowerSources.Clear();
             UnsavedData.bases.Clear();
@@ -131,13 +146,19 @@ namespace Stats_Tracker
 
         private void Start()
         {
+            configMenu = new ConfigFile(configMenuPath, false);
+            ConfigMenu.Bind();
             WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartLoadingSetup());
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             LanguageHandler.RegisterLocalizationFolder();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => FinishLoadingSetup());
-            Stats_Display.AddEntries();
+            //Stats_Display.AddEntries();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
+            options = new OptionsMenu();
+            OptionsPanelHandler.RegisterModOptions(options);
+            configMain = new ConfigMain();
+            configMain.Load();
             logger.LogInfo($"{MODNAME} {VERSION} Start done");
         }
 
@@ -150,6 +171,65 @@ namespace Stats_Tracker
                 SaveData();
             }
         }
+
+        private static void FixSquidSharkKills()
+        {
+            if (configMain.squidSharkKillsFixed)
+                return;
+
+            foreach (var kv in configMain.leviathansKilled)
+            {
+                string slot = kv.Key;
+                if (configMain.leviathansKilled.ContainsKey(slot) == false)
+                    continue;
+
+                int num = 0;
+                if (configMain.leviathansKilled[slot].ContainsKey("SquidShark"))
+                {
+                    //AddDebug("SquidShark");
+                    num = configMain.leviathansKilled[slot]["SquidShark"];
+                    configMain.leviathansKilled[slot].Remove("SquidShark");
+                    if (configMain.leviathansKilled[slot].Count == 0)
+                        configMain.leviathansKilled.Remove(slot);
+                }
+                if (num > 0)
+                {
+                    if (configMain.animalsKilled.ContainsKey(slot) == false)
+                        configMain.animalsKilled[slot] = new Dictionary<string, int>();
+
+                    configMain.animalsKilled[slot].AddValue("SquidShark", num);
+                }
+            }
+            configMain.squidSharkKillsFixed = true;
+            configMain.Save();
+        }
+
+        private static void FixBornCreatures()
+        {
+            if (configMain.bornCreaturesFixed)
+                return;
+
+            HashSet<string> creatures = new HashSet<string>();
+            foreach (var kv1 in configMain.eggsHatched)
+            {
+                foreach (var kv2 in kv1.Value)
+                    creatures.Add(kv2.Key);
+            }
+            foreach (string tt in creatures)
+            {
+                foreach (var kv_ in configMain.creaturesBred)
+                {
+                    if (kv_.Value.ContainsKey(tt))
+                    {
+                        //AddDebug("FixBornCreatures Remove " + tt);
+                        kv_.Value.Remove(tt);
+                    }
+                }
+            }
+            configMain.bornCreaturesFixed = true;
+            configMain.Save();
+        }
+
 
     }
 }

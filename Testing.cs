@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
-using static VoxelandChunk;
 
 namespace Stats_Tracker
 {
@@ -20,10 +19,10 @@ namespace Stats_Tracker
             //static HashSet<string> biomeNames = new HashSet<string>();
             static void Postfix(Player __instance)
             {
-                if (__instance.currentSub != null)
-                    AddDebug("sub Temperature: " + (int)__instance.currentSub.internalTemperature);
-                if (__instance.currentInterior != null)
-                    AddDebug("Interior Temperature: " + (int)__instance.currentInterior.GetInsideTemperature());
+                //if (__instance.currentSub != null)
+                //    AddDebug("sub Temperature: " + (int)__instance.currentSub.internalTemperature);
+                //if (__instance.currentInterior != null)
+                //    AddDebug("Interior Temperature: " + (int)__instance.currentInterior.GetInsideTemperature());
                 //AddDebug(PlatformUtils.main.GetServices().GetRichPresence());
                 //bool inLifepodDrop = Player.main.currentInterior is LifepodDrop;
                 //AddDebug("inLifepodDrop " + inLifepodDrop);
@@ -63,6 +62,7 @@ namespace Stats_Tracker
                     AddDebug(" TimeSpan 66 " + ts.TotalMinutes);
                     ts = TimeSpan.FromSeconds(33);
                     AddDebug(" TimeSpan 33 " + ts.TotalMinutes);
+                    DumpEncy();
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Player.main.GetComponent<Survival>().water++;
                     //else
@@ -133,6 +133,19 @@ namespace Stats_Tracker
                 //AddDebug(" Targeting GetTarget  " + result.name);
             }
         }
+
+        private static void DumpEncy()
+        {
+            Main.logger.LogMessage("Dump ency");
+            AddDebug("Dump ency");
+            foreach (var kv in PDAEncyclopedia.mapping)
+            {
+                PDAEncyclopedia.EntryData data = kv.Value;
+                bool unlocked = PDAEncyclopedia.entries.ContainsKey(kv.Key);
+                Main.logger.LogMessage($" key: {data.key} path: {data.path} unlocked: {unlocked}");
+            }
+        }
+
 
     }
 }

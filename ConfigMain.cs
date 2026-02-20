@@ -1,38 +1,28 @@
 ﻿using BepInEx;
-using Nautilus.Commands;
-using Nautilus.Handlers;
 using Nautilus.Json;
-using Nautilus.Options;
-using Nautilus.Options.Attributes;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
-using static ErrorMessage;
+using System.Text;
 
 namespace Stats_Tracker
 {
-    public class Config : ConfigFile
+    public class ConfigMain : JsonFile
     {
+        public ConfigMain()
+        {
+        }
 
-        [Toggle("Mod enabled", Tooltip = "Only saved stats will be shown and no new data will be saved when the mod is disabled")]
-        public bool modEnabled = true;
-
-        [Toggle("Show temperature in Fahrenhiet")]
-        public bool fahrenhiet = false;
-
-        [Toggle("Show distance in miles and yards")]
-        public bool miles = false;
-
-        [Toggle("Show weight in pounds")]
-        public bool pounds = false;
+        public override string JsonFilePath => Paths.ConfigPath + Path.DirectorySeparatorChar + Main.MODNAME + Path.DirectorySeparatorChar + "config.json";
 
         public Dictionary<string, TimeSpan> timePlayed = new Dictionary<string, TimeSpan>();
         public Dictionary<string, TimeSpan> timeEscapePod = new Dictionary<string, TimeSpan>();
         public Dictionary<string, TimeSpan> timeSwam = new Dictionary<string, TimeSpan>();
         public Dictionary<string, TimeSpan> timeWalked = new Dictionary<string, TimeSpan>();
+        public Dictionary<string, TimeSpan> timeSat = new Dictionary<string, TimeSpan>();
         public Dictionary<string, Dictionary<string, TimeSpan>> timeVehicles = new Dictionary<string, Dictionary<string, TimeSpan>>();
         public Dictionary<string, TimeSpan> timeBase = new Dictionary<string, TimeSpan>();
+        public Dictionary<string, TimeSpan> timePrecursor = new Dictionary<string, TimeSpan>();
         public Dictionary<string, TimeSpan> timeSlept = new Dictionary<string, TimeSpan>();
         public Dictionary<string, int> playerDeaths = new Dictionary<string, int>();
         public int gamesWon = 0;
@@ -75,5 +65,8 @@ namespace Stats_Tracker
         public Dictionary<string, int> minVehicleTemp = new Dictionary<string, int>();
         public Dictionary<string, int> maxVehicleTemp = new Dictionary<string, int>();
         public int permaDeaths = 0;
+        public bool bornCreaturesFixed = false;
+        public bool squidSharkKillsFixed = false;
+
     }
 }

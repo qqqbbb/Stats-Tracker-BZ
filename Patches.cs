@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using mset;
+using Nautilus.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Stats_Tracker
 {
@@ -15,7 +17,7 @@ namespace Stats_Tracker
     {
         static LiveMixin killedLM = null;
         public static string saveSlot;
-        public static TimeSpan timeLastUpdate = default;
+        static TimeSpan timeLastUpdate = default;
         public static HashSet<TechType> roomTypes = new HashSet<TechType> { TechType.BaseRoom, TechType.BaseMapRoom, TechType.BaseMoonpool, TechType.BaseObservatory, TechType.BaseLargeRoom, TechType.BaseControlRoom, TechType.BaseMoonpoolExpansion };
         public static Dictionary<Base.CellType, TechType> roomTypeToTechtype = new Dictionary<Base.CellType, TechType>
         {
@@ -37,22 +39,33 @@ namespace Stats_Tracker
         public static HashSet<TechType> corridorTypes = new HashSet<TechType> { TechType.BaseCorridorI, TechType.BaseCorridorL, TechType.BaseCorridorT, TechType.BaseCorridorX, TechType.BaseCorridorGlassI, TechType.BaseCorridorGlassL, TechType.BaseCorridor, TechType.BaseCorridorGlass };
         public static HashSet<TechType> basePowerSourceTypes = new HashSet<TechType> { TechType.SolarPanel, TechType.ThermalPlant, TechType.BaseNuclearReactor, TechType.BaseBioReactor };
 
-        public static HashSet<TechType> faunaVanilla = new HashSet<TechType> { TechType.Brinewing, TechType.BruteShark, TechType.Cryptosuchus, TechType.NootFish, TechType.Penguin, TechType.PenguinBaby, TechType.Crash, TechType.Pinnacarid, TechType.RockPuncher, TechType.SnowStalker, TechType.SnowStalkerBaby, TechType.SpikeyTrap, TechType.Bladderfish, TechType.Boomerang, TechType.SquidShark, TechType.Symbiote, TechType.ArcticPeeper, TechType.ArcticRay, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Hoopfish, TechType.Jellyfish, TechType.HivePlant, TechType.LilyPaddler, TechType.SeaMonkey, TechType.SeaMonkeyBaby, TechType.SpinnerFish, TechType.TitanHolefish, TechType.Skyray, TechType.Triops, TechType.Spinefish, TechType.BlueAmoeba, TechType.TrivalveBlue, TechType.TrivalveYellow };
+        //public static HashSet<TechType> faunaVanilla = new HashSet<TechType> { TechType.Brinewing, TechType.BruteShark, TechType.Cryptosuchus, TechType.NootFish, TechType.Penguin, TechType.PenguinBaby, TechType.Crash, TechType.Pinnacarid, TechType.RockPuncher, TechType.SnowStalker, TechType.SnowStalkerBaby, TechType.SpikeyTrap, TechType.Bladderfish, TechType.Boomerang, TechType.SquidShark, TechType.Symbiote, TechType.ArcticPeeper, TechType.ArcticRay, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Hoopfish, TechType.Jellyfish, TechType.HivePlant, TechType.LilyPaddler, TechType.SeaMonkey, TechType.SeaMonkeyBaby, TechType.SpinnerFish, TechType.TitanHolefish, TechType.Skyray, TechType.Triops, TechType.Spinefish, TechType.BlueAmoeba, TechType.TrivalveBlue, TechType.TrivalveYellow };
         public static HashSet<TechType> leviathans = new HashSet<TechType>();
         public static HashSet<TechType> creatures = new HashSet<TechType>();
-        public static HashSet<TechType> leviathansVanilla = new HashSet<TechType>
-              {TechType.GlowWhale, TechType.Chelicerate, TechType.IceWorm, TechType.LargeVentGarden, TechType.SmallVentGarden, TechType.SeaEmperorJuvenile, TechType.ShadowLeviathan };
+        //public static HashSet<TechType> leviathansVanilla = new HashSet<TechType>
+        //{TechType.GlowWhale, TechType.Chelicerate, TechType.IceWorm, TechType.LargeVentGarden, TechType.SmallVentGarden, TechType.SeaEmperorJuvenile, TechType.ShadowLeviathan };
         public static HashSet<TechType> coral = new HashSet<TechType> { TechType.CoralShellPlate, TechType.BrownTubes, TechType.BigCoralTubes, TechType.BlueCoralTubes, TechType.RedTipRockThings, TechType.GenericJeweledDisk, TechType.BlueJeweledDisk, TechType.GreenJeweledDisk, TechType.RedJeweledDisk, TechType.PurpleJeweledDisk, TechType.TreeMushroom, TechType.BrainCoral, TechType.TwistyBridgesCoralShelf };
         public static HashSet<TechType> flora = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.SmallMaroonPlant, TechType.GenericArmored, TechType.LilyPadMature, TechType.LilyPadRoot, TechType.GenericBigPlant1, TechType.GenericShellSingle, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.GenericShellDouble, TechType.EyesPlant, TechType.FernPalm, TechType.BlueFurPlant, TechType.DeepTwistyBridgesLargePlant, TechType.JellyPlant, TechType.RedGreenTentacle, TechType.OrangePetalsPlant, TechType.GenericBulbStalk, TechType.TwistyBridgesMushroom, TechType.HangingFruitTree, TechType.CavePlant, TechType.MelonPlant, TechType.DeepLilyPadsLanternPlant, TechType.TwistyBridgeCliffPlant, TechType.OxygenPlant, TechType.RedBush, TechType.TwistyBridgeCoralLong, TechType.RedBasketPlant, TechType.GenericCage, TechType.GlacialPouchBulb, TechType.ShellGrass, TechType.SpottedLeavesPlant, TechType.CrashHome, TechType.SnowStalkerPlant, TechType.TapePlant, TechType.PurpleStalk, TechType.PinkFlower, TechType.PurpleTentacle, TechType.BloodGrass, TechType.RedGrass, TechType.RedSeaweed, TechType.BlueBarnacle, TechType.BlueBarnacleCluster, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BlueCluster, TechType.GreenReeds, TechType.BarnacleSuckers, TechType.BallClusters, TechType.GenericCrystal, TechType.GenericBowl, TechType.TallShootsPlant, TechType.TreeSpireMushroom, TechType.GenericRibbon, TechType.HeatFruitPlant, TechType.GlacialTree, TechType.IceFruitPlant, TechType.FrozenRiverPlant2, TechType.FrozenRiverPlant1, TechType.SnowPlant, TechType.Mohawk, TechType.PurpleRattle, TechType.GenericSpiral, TechType.CaveFlower, TechType.TrianglePlant, TechType.OrangePetalsPlant, TechType.ThermalLily, TechType.TwistyBridgesLargePlant, TechType.ThermalSpireBarnacle, TechType.TornadoPlates, TechType.HoneyCombPlant, TechType.LeafyFruitPlant, TechType.GlacialBulb, TechType.PinkFlower, TechType.GenericBigPlant2, TechType.DeepLilyShroom, TechType.KelpRoot };
         public static HashSet<TechType> constructorBuilt = new HashSet<TechType>();
         public static TechType currentVehicleTT;
         static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
-        const int leviathanMinHealth = 1000;
+        const int leviathanMinHealth = 4000;
         static BodyTemperature bodyTemperature;
-        static bool startTracking = false;
+        static bool playerLanded = false;
         static TimeSpan timePlayedAtGameStart = new TimeSpan(8, 27, 0);
+        static bool playerTakesDamage = false;
+        static bool teleporting = false;
+        private static TechType hatchedTT;
 
-        public static TimeSpan GetTimePlayed()
+
+        public static void CleanUp()
+        {
+            timeLastUpdate = TimeSpan.Zero;
+            playerLanded = false;
+            teleporting = false;
+        }
+
+        public static TimeSpan GetTimeSpanPlayed()
         {
             return new TimeSpan(0, 0, Mathf.FloorToInt(DayNightCycle.main.timePassedAsFloat * DayNightCycle.main.gameSecondMultiplier)) - timePlayedAtGameStart;
         }
@@ -91,6 +104,8 @@ namespace Stats_Tracker
         [HarmonyPatch(typeof(Player))]
         internal class Player_Patch
         {
+            static BasicText currentBiome = new BasicText(0, 250);
+
             private static void SaveTravelStats(Player player)
             {
                 Vector3 position = player.transform.position;
@@ -141,15 +156,23 @@ namespace Stats_Tracker
             private static void SaveTimeStats(Player player)
             {
                 string biomeName = Util.GetBiomeName();
-                TimeSpan timeSinceLastUpdate = GetTimePlayed() - timeLastUpdate;
+                TimeSpan timeSinceLastUpdate = GetTimeSpanPlayed() - timeLastUpdate;
                 //AddDebug("timeSinceLastUpdate " + timeSinceLastUpdate);
+                //AddDebug($"GetTimePlayed {GetTimePlayed()} timeLastUpdate {timeLastUpdate} ");
                 if (biomeName != "ST_unknown_biome")
                 {
                     UnsavedData.timeBiomes.AddValue(biomeName, timeSinceLastUpdate);
                 }
+                //if (player.currentInterior != null)
+                //    AddDebug("currentInterior " + player.currentInterior.ToString());
+
                 if (player.IsUnderwaterForSwimming())
                 {
                     UnsavedData.timeSwam += timeSinceLastUpdate;
+                }
+                else if (player.mode == Player.Mode.Sitting)
+                {
+                    UnsavedData.timeSat += timeSinceLastUpdate;
                 }
                 else if (player.motorMode == Player.MotorMode.Walk || player.motorMode == Player.MotorMode.Run)
                 { // MotorMode.Run when swimming on surface
@@ -164,20 +187,26 @@ namespace Stats_Tracker
                     //AddDebug("SAVE Vehicle time " + currentVehicleTT);
                     UnsavedData.timeVehicles.AddValue(currentVehicleTT, timeSinceLastUpdate);
                 }
-                else if (Player.main.currentSub)
+
+                if (player.currentSub)
                 {
                     UnsavedData.timeBase += timeSinceLastUpdate;
                 }
-                else if (Player.main.currentInterior is LifepodDrop)
+                else if (player.currentInterior is LifepodDrop)
                 {
                     UnsavedData.timeEscapePod += timeSinceLastUpdate;
                 }
-                else if (Player.main.currentInterior is SeaTruckSegment)
+                else if (player.currentInterior is SeaTruckSegment)
                 {
                     UnsavedData.timeVehicles.AddValue(TechType.SeaTruck, timeSinceLastUpdate);
                 }
+                else if (player.currentInterior != null && player.currentInterior.ToString().StartsWith("Precursor"))
+                {
+                    //AddDebug("Precursor");
+                    UnsavedData.timePrecursor += timeSinceLastUpdate;
+                }
                 //AddDebug("timeSwam " + UnsavedData.timeSwam[saveSlot]);
-                timeLastUpdate = GetTimePlayed();
+                timeLastUpdate = GetTimeSpanPlayed();
             }
 
             private static void SaveTempStats(Player player)
@@ -212,43 +241,99 @@ namespace Stats_Tracker
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("TrackTravelStats")]
-            public static bool TrackTravelStatsPrefix(Player __instance)
+            public static bool ShouldBeTracking()
             {
-                if (!Main.config.modEnabled)
+                if (Player.main.isNewBorn)
+                    return playerLanded;
+
+                return Main.setupDone;
+            }
+
+            [HarmonyPrefix, HarmonyPatch("TrackTravelStats")]
+            public static bool TrackTravelStatsPrefix(Player __instance)
+            { // runs during opening cinematic
+                if (ConfigMenu.modEnabled.Value == false)
                     return true;
 
-                if (Main.setupDone == false || string.IsNullOrEmpty(saveSlot))
-                    return false;
-
-                if (__instance.isNewBorn && startTracking == false)
+                if (ShouldBeTracking() == false || teleporting)
                     return false;
 
                 if (timeLastUpdate == default)
-                    timeLastUpdate = GetTimePlayed();
+                    timeLastUpdate = GetTimeSpanPlayed();
                 //AddDebug("isUnderwaterForSwimming " + __instance.IsUnderwaterForSwimming());
-                //AddDebug("motorMode " + __instance.motorMode);
+                //AddDebug($"TrackTravelStats isNewBorn {__instance.isNewBorn} startTracking {startTracking}");
                 SaveTravelStats(__instance);
                 SaveTimeStats(__instance);
                 SaveTempStats(__instance);
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
+            [HarmonyPostfix, HarmonyPatch("OnKill")]
             public static void OnKillPostfix(Player __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (GameModeManager.GetOption<bool>(GameOption.PermanentDeath))
                 {
-                    Main.config.permaDeaths++;
-                    Main.config.Save();
+                    Main.configMain.permaDeaths++;
+                    Main.configMain.Save();
                 }
                 else
                     UnsavedData.playerDeaths++;
+            }
+
+            [HarmonyPostfix, HarmonyPatch("Update")]
+            public static void UpdatePostfix(Player __instance)
+            {
+                ShowBiomeName();
+            }
+
+            private static void ShowBiomeName()
+            {
+                if (ConfigMenu.biomeName.Value == false || ShouldBeTracking() == false)
+                    return;
+
+                string biomeName = Language.main.Get(Util.GetBiomeName());
+                //AddDebug("biomeName " + biomeName);
+                if (currentBiome.GetText() == biomeName)
+                    return;
+
+                currentBiome.ShowMessage(biomeName, 5);
+                //currentBiome.SetColor(Color.green);
+            }
+        }
+
+        [HarmonyPatch(typeof(TeleportationTool), "StartTeleportSequence")]
+        class TeleportationTool_StartTeleportSequence_Patch
+        {
+            static void Prefix(TeleportationTool __instance)
+            {
+                //AddDebug("StartTeleportSequence");
+                OnStartTeleporting();
+            }
+        }
+
+        private static void OnStartTeleporting()
+        {
+            teleporting = true;
+            Player.main.lastPosition = Vector3.zero;
+        }
+
+        [HarmonyPatch(typeof(PrecursorTeleporter))]
+        class PrecursorTeleporter_Patch
+        {
+            [HarmonyPrefix, HarmonyPatch("BeginTeleportPlayer")]
+            public static void BeginTeleportPlayerPrefix(PrecursorTeleporter __instance, GameObject teleportObject)
+            {
+                //AddDebug("BeginTeleportPlayer");
+                OnStartTeleporting();
+            }
+            [HarmonyPostfix, HarmonyPatch("TeleportationComplete")]
+            public static void TeleportationCompletePostfix(PrecursorTeleporter __instance)
+            {
+                //AddDebug("TeleportationComplete");
+                teleporting = false;
             }
         }
 
@@ -256,9 +341,9 @@ namespace Stats_Tracker
         class IntroDropshipExplode_Explode_Patch
         {
             static void Postfix(IntroDropshipExplode __instance)
-            {  // need this to get correct traveled distance 
+            {
                 //AddDebug("Explode");
-                startTracking = true;
+                playerLanded = true;
             }
         }
 
@@ -270,7 +355,10 @@ namespace Stats_Tracker
                 if (__instance.liveMixin)
                 {
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
-                    if (__instance.liveMixin && __instance.liveMixin.maxHealth >= leviathanMinHealth)
+                    if (creatures.Contains(tt) || leviathans.Contains(tt))
+                        return;
+
+                    if (__instance.liveMixin.maxHealth >= leviathanMinHealth)
                         leviathans.Add(tt);
                     else
                         creatures.Add(tt);
@@ -281,11 +369,10 @@ namespace Stats_Tracker
         [HarmonyPatch(typeof(PowerSource))]
         class PowerSource_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             static void StartPostfix(PowerSource __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -307,12 +394,11 @@ namespace Stats_Tracker
                 //AddDebug("CraftingAnalytics OnConstruct " + techType);
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnConstruct")]
+            [HarmonyPostfix, HarmonyPatch("OnConstruct")]
             static void OnConstructPostfix(CraftingAnalytics __instance, TechType techType)
             {
                 //AddDebug("CraftingAnalytics OnConstruct " + techType);
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (corridorTypes.Contains(techType) || roomTypes.Contains(techType) || techType == TechType.Hoverbike)
@@ -322,12 +408,11 @@ namespace Stats_Tracker
                     UnsavedData.builderToolBuilt.AddValue(techType, 1);
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnCraft")]
+            [HarmonyPostfix, HarmonyPatch("OnCraft")]
             static void OnCraftPostfix(CraftingAnalytics __instance, TechType techType)
             {
                 //AddDebug("CraftingAnalytics OnCraft " + techType);
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (constructorBuilt.Contains(techType) || techType == TechType.Hoverbike)
@@ -365,32 +450,13 @@ namespace Stats_Tracker
             }
         }
 
-
-        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
-        class DamageSystem_CalculateDamage_Patch
-        {
-            public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
-            {
-                if (!Main.config.modEnabled)
-                    return;
-
-                //AddDebug(target.name + " CalculateDamage " + __result);
-                if (__result > 0f && target == Player.mainObject)
-                {
-                    //AddDebug("Player takes damage");
-                    UnsavedData.healthLost += Mathf.RoundToInt(__result);
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(Survival))]
         class Survival_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Use")]
+            [HarmonyPostfix, HarmonyPatch("Use")]
             public static void UsePostfix(Survival __instance, GameObject useObj, bool __result)
             {
-                if (!Main.config.modEnabled || !__result)
+                if (!ConfigMenu.modEnabled.Value || !__result)
                     return;
 
                 TechType tt = CraftData.GetTechType(useObj);
@@ -400,11 +466,10 @@ namespace Stats_Tracker
                     UnsavedData.medkitsUsed++;
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("Eat")]
+            [HarmonyPostfix, HarmonyPatch("Eat")]
             public static void EatPostfix(Survival __instance, GameObject useObj, bool __result)
             {
-                if (!Main.config.modEnabled || __result == false)
+                if (!ConfigMenu.modEnabled.Value || __result == false)
                     return;
 
                 TechType tt = CraftData.GetTechType(useObj);
@@ -444,28 +509,11 @@ namespace Stats_Tracker
         {
             public static void Postfix(BelowZeroEndGame __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
                 //AddDebug("BelowZeroEndGame ShowCredits ");
-                Main.config.gamesWon++;
-                Main.config.Save();
-            }
-        }
-
-        [HarmonyPatch(typeof(CreatureEgg), "Hatch")]
-        internal class CreatureEgg_Hatch_Patch
-        {
-            public static void Postfix(CreatureEgg __instance)
-            {
-                //AddDebug("Hatch  " + __instance.hatchingCreature);
-                if (!Main.config.modEnabled)
-                    return;
-
-                TechType tt = __instance.creatureType;
-                if (tt == TechType.None)
-                    return;
-                //string name = __instance.creatureType.AsString();
-                UnsavedData.eggsHatched.AddValue(tt, 1);
+                Main.configMain.gamesWon++;
+                Main.configMain.Save();
             }
         }
 
@@ -474,7 +522,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(GrowingPlant __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 TechType tt = __instance.seed.plantTechType;
@@ -487,6 +535,25 @@ namespace Stats_Tracker
             }
         }
 
+        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
+        class DamageSystem_CalculateDamage_Patch
+        {
+            public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
+            {
+                if (!ConfigMenu.modEnabled.Value)
+                    return;
+
+                //AddDebug(target.name + " CalculateDamage " + __result);
+                if (playerTakesDamage && __result > 0)
+                {
+                    float currentHealth = Player.main.GetComponent<LiveMixin>().health;
+                    float d = __result > currentHealth ? currentHealth : __result;
+                    //AddDebug("Player takes damage " + d);
+                    UnsavedData.healthLost += Mathf.RoundToInt(d);
+                    playerTakesDamage = false;
+                }
+            }
+        }
         [HarmonyPatch(typeof(LiveMixin))]
         internal class LiveMixin_Patch
         {
@@ -502,30 +569,38 @@ namespace Stats_Tracker
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("Kill")]
+            [HarmonyPrefix, HarmonyPatch("Kill")]
             public static void KillPrefix(LiveMixin __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //AddDebug("Kill " + tt);
                 killedLM = __instance;
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("TakeDamage")]
+
+            [HarmonyPrefix, HarmonyPatch("TakeDamage")]
+            public static void TakeDamagePrefix(LiveMixin __instance, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
+            {
+                if (__instance.TryGetComponent<Player>(out _))
+                {
+                    playerTakesDamage = true;
+                }
+            }
+
+            [HarmonyPostfix, HarmonyPatch("TakeDamage")]
             public static void TakeDamagePostfix(LiveMixin __instance, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
                 //AddDebug(__instance.name + " TakeDamage ");
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (WasKilledByPlayer(__instance, dealer))
                 {
-                    //AddDebug(__instance.name + " WasKilledByPlayer ");
                     killedLM = null;
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    //AddDebug(__instance.name + " WasKilledByPlayer ");
                     if (tt == TechType.None)
                         return;
                     //AddDebug(tt + " killed by player");
@@ -576,7 +651,7 @@ namespace Stats_Tracker
             public static void Prefix(BlueprintHandTarget __instance)
             {
                 //AddDebug("UnlockBlueprint  " + __instance.unlockTechType);
-                if (!Main.config.modEnabled || string.IsNullOrEmpty(saveSlot) || __instance.used)
+                if (!ConfigMenu.modEnabled.Value || string.IsNullOrEmpty(saveSlot) || __instance.used)
                     return;
 
                 if (!KnownTech.Contains(__instance.unlockTechType))
@@ -592,7 +667,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(ScannerTool __instance, PDAScanner.Result __result)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (__result == PDAScanner.Result.None || __result == PDAScanner.Result.Scan || __result == PDAScanner.Result.Known) { }
@@ -633,7 +708,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(PDAScanner.EntryData entryData, bool unlockBlueprint, bool unlockEncyclopedia, bool verbose)
             {
-                if (!Main.config.modEnabled || entryData == null || !verbose || !unlockBlueprint)
+                if (!ConfigMenu.modEnabled.Value || entryData == null || !verbose || !unlockBlueprint)
                     return;
 
                 //AddDebug(" scanned " + entryData.key);
@@ -660,7 +735,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(Base __instance)
             {
-                if (!Main.config.modEnabled || __instance.isGhost)
+                if (!ConfigMenu.modEnabled.Value || __instance.isGhost)
                     return;
 
                 UnsavedData.bases.Add(__instance);
@@ -698,11 +773,10 @@ namespace Stats_Tracker
                 //    SaveResourcesUsedToConstruct(__instance.resourceMap);
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("DeconstructAsync")]
+            [HarmonyPostfix, HarmonyPatch("DeconstructAsync")]
             public static void DeconstructAsyncPostfix(Constructable __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (__instance.constructedAmount <= 0f)
@@ -718,13 +792,13 @@ namespace Stats_Tracker
                 {
                     UnsavedData.builderToolBuilt[techType]--;
                 }
-                else if (Main.config.builderToolBuilt.ContainsKey(saveSlot))
+                else if (Main.configMain.builderToolBuilt.ContainsKey(saveSlot))
                 {
                     string name = techType.AsString();
-                    if (Main.config.builderToolBuilt[saveSlot].ContainsKey(name) && Main.config.builderToolBuilt[saveSlot][name] > 0)
+                    if (Main.configMain.builderToolBuilt[saveSlot].ContainsKey(name) && Main.configMain.builderToolBuilt[saveSlot][name] > 0)
                     {
-                        Main.config.builderToolBuilt[saveSlot][name]--;
-                        Main.config.Save();
+                        Main.configMain.builderToolBuilt[saveSlot][name]--;
+                        Main.configMain.Save();
                     }
                 }
 
@@ -735,11 +809,10 @@ namespace Stats_Tracker
         [HarmonyPatch(typeof(Vehicle))]
         internal class Vehicle_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
+            [HarmonyPostfix, HarmonyPatch("OnKill")]
             public static void OnKillPostfix(Vehicle __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 //AddDebug(" OnKill " + CraftData.GetTechType(__instance.gameObject));
@@ -755,8 +828,7 @@ namespace Stats_Tracker
                         UnsavedData.vehiclesLost.AddValue(tt, 1);
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("EnterVehicle")]
+            [HarmonyPostfix, HarmonyPatch("EnterVehicle")]
             public static void EnterVehicleostfix(Vehicle __instance)
             {
                 currentVehicleTT = CraftData.GetTechType(__instance.gameObject);
@@ -771,7 +843,7 @@ namespace Stats_Tracker
             static HashSet<SeaTruckSegment> lostSTSs = new HashSet<SeaTruckSegment>();
             static void Postfix(SeaTruckSegment __instance)
             {
-                if (!Main.config.modEnabled || lostSTSs.Contains(__instance))
+                if (!ConfigMenu.modEnabled.Value || lostSTSs.Contains(__instance))
                     return;
 
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -789,7 +861,7 @@ namespace Stats_Tracker
         {
             static void Postfix(Hoverbike __instance)
             {
-                if (Main.config.modEnabled)
+                if (ConfigMenu.modEnabled.Value)
                     UnsavedData.vehiclesLost.AddValue(TechType.Hoverbike, 1);
             }
         }
@@ -799,7 +871,7 @@ namespace Stats_Tracker
         {
             public static void Postfix(ConstructorInput __instance, TechType techType)
             {
-                if (Main.config.modEnabled)
+                if (ConfigMenu.modEnabled.Value)
                     constructorBuilt.Add(techType);
                 //AddDebug("Constructor OnCraftingBegin " + techType);
             }
@@ -810,22 +882,20 @@ namespace Stats_Tracker
         {
             static TimeSpan bedTimeStart = TimeSpan.Zero;
 
-            [HarmonyPostfix]
-            [HarmonyPatch("EnterInUseMode")]
+            [HarmonyPostfix, HarmonyPatch("EnterInUseMode")]
             public static void EnterInUseModePostfix(Bed __instance)
             {
-                if (Main.config.modEnabled)
-                    bedTimeStart = GetTimePlayed();
+                if (ConfigMenu.modEnabled.Value)
+                    bedTimeStart = GetTimeSpanPlayed();
                 //AddDebug("EnterInUseMode " );
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("ExitInUseMode")]
+            [HarmonyPostfix, HarmonyPatch("ExitInUseMode")]
             public static void ExitInUseModePostfix(Bed __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
-                TimeSpan timeSlept = GetTimePlayed() - bedTimeStart;
+                TimeSpan timeSlept = GetTimeSpanPlayed() - bedTimeStart;
                 UnsavedData.timeSlept += timeSlept;
                 //AddDebug("ExitInUseMode " );
             }
@@ -836,7 +906,7 @@ namespace Stats_Tracker
         {
             static void Postfix(LiveMixin __instance, DamageType type)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value)
                     return;
 
                 if (__instance.gameObject.tag == "Player" && __instance.damageInfo.damage > 0)
@@ -859,18 +929,42 @@ namespace Stats_Tracker
             }
         }
 
+        [HarmonyPatch(typeof(CreatureEgg), "Hatch")]
+        internal class CreatureEgg_Hatch_Patch
+        {
+
+            public static void Postfix(CreatureEgg __instance)
+            {
+                if (!ConfigMenu.modEnabled.Value)
+                    return;
+
+                TechType tt = __instance.creatureType;
+                AddDebug("CreatureEgg Hatch  " + tt);
+                if (tt == TechType.None)
+                    return;
+
+                hatchedTT = tt;
+                UnsavedData.eggsHatched.AddValue(tt, 1);
+            }
+        }
+
         [HarmonyPatch(typeof(WaterParkCreature), "InitializeCreatureBornInWaterPark")]
         class GWaterParkCreature_InitializeCreatureBornInWaterPark_patch
         {
             public static void Postfix(WaterParkCreature __instance)
             {
-                if (!Main.config.modEnabled)
+                if (!ConfigMenu.modEnabled.Value || Main.setupDone == false)
                     return;
 
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (tt == TechType.None)
                     return;
 
+                if (hatchedTT != TechType.None)
+                {
+                    hatchedTT = TechType.None;
+                    return;
+                }
                 UnsavedData.creaturesBred.AddValue(tt, 1);
                 //AddDebug("InitializeCreatureBornInWaterPark  " + tt);
             }
