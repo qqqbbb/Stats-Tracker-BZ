@@ -101,16 +101,12 @@
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="Stats_Display_old.cs" />
     <Compile Include="Testing.cs" />
     <Compile Include="UnsavedData.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Patches.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Config_old.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Localization\English.json" />
