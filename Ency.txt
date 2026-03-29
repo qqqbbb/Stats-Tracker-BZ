@@ -96,8 +96,6 @@ key: Pregame_Sam_Leaving_Alt path: DownloadedData/Sam
 key: Prop_SamNecklace path: DownloadedData/Sam
 key: Sam_Journal_LastHopes path: DownloadedData/Sam
 
-
-
 key: Readme path: Emergency
 key: ReadmeCold path: Emergency
 

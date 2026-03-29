@@ -26,7 +26,7 @@ namespace Stats_Tracker
         public const string
             MODNAME = "Stats Tracker",
             GUID = "qqqbbb.subnauticaBZ.statsTracker",
-            VERSION = "4.2.2";
+            VERSION = "4.2.3";
         public static ManualLogSource logger;
         public static bool setupDone = false;
         public static OptionsMenu options;
@@ -48,6 +48,7 @@ namespace Stats_Tracker
             FixSquidSharkKills();
             FixBornCreatures();
             Stats_Display.CreateMyEntries();
+            //logger.LogInfo($"{MODNAME} {VERSION} StartLoadingSetup done");
         }
 
         public static void FinishLoadingSetup()
@@ -56,7 +57,7 @@ namespace Stats_Tracker
             //Patches.timeLastUpdate = Patches.GetTimePlayed();
             Stats_Display.AddMyEntries();
             setupDone = true;
-            logger.LogInfo($"{MODNAME} {VERSION} FinishLoadingSetup done");
+            //logger.LogInfo($"{MODNAME} {VERSION} FinishLoadingSetup done");
         }
 
         public static void DeleteSaveSlotData(string saveSlot)
@@ -115,11 +116,15 @@ namespace Stats_Tracker
             configMain.Save();
         }
 
-        static void SaveData()
+        static void SaveData(bool saving)
         {
             //logger.LogInfo("SaveData " + SaveLoadManager.main.currentSlot);
-            UnsavedData.SaveData(SaveLoadManager.main.currentSlot);
-            UnsavedData.ResetData();
+            //AddDebug("SaveData " + saving);
+            if (saving)
+            {
+                UnsavedData.SaveData(SaveLoadManager.main.currentSlot);
+                UnsavedData.ResetData();
+            }
         }
 
         [HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
@@ -152,24 +157,14 @@ namespace Stats_Tracker
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             LanguageHandler.RegisterLocalizationFolder();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => FinishLoadingSetup());
-            //Stats_Display.AddEntries();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             configMain = new ConfigMain();
             configMain.Load();
-            logger.LogInfo($"{MODNAME} {VERSION} Start done");
-        }
-
-        [HarmonyPatch(typeof(SaveLoadManager), "SaveToDeepStorageAsync", new Type[0])]
-        internal class SaveLoadManager_SaveToDeepStorageAsync_Patch
-        {
-            public static void Postfix(SaveLoadManager __instance)
-            { // runs after nautilus SaveEvent
-                //AddDebug("SaveToDeepStorageAsync");
-                SaveData();
-            }
+            SaveLoadManager.notificationSaveInProgress += SaveData;
+            //logger.LogInfo($"{MODNAME} {VERSION} Start done");
         }
 
         private static void FixSquidSharkKills()

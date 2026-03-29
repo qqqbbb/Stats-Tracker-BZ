@@ -560,9 +560,13 @@ namespace Stats_Tracker
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //AddDebug("WasKilledByPlayer " + tt);
-                if (killer && killedLM && liveMixin == killedLM)
+                if (killer && liveMixin == killedLM)
                 {
-                    if (killer == Player.main.gameObject || killer == Player.main.currentMountedVehicle?.gameObject || killer == Player.main.currentSub?.gameObject)
+                    if (killer == Player.main.gameObject || killer == Player.main.currentMountedVehicle?.gameObject)
+                        return true;
+                    else if (Util.IsPlayerInTruck() && killer.name == "SeaTruck(Clone)")
+                        return true;
+                    else if (Player.main.inHovercraft && killer.name == "Hoverbike(Clone)")
                         return true;
                 }
                 return false;
@@ -574,8 +578,8 @@ namespace Stats_Tracker
                 if (!ConfigMenu.modEnabled.Value)
                     return;
 
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //AddDebug("Kill " + tt);
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug($"Kill {tt} {__instance.health}");
                 killedLM = __instance;
             }
 
@@ -595,7 +599,27 @@ namespace Stats_Tracker
                 if (!ConfigMenu.modEnabled.Value)
                     return;
 
-                if (WasKilledByPlayer(__instance, dealer))
+                //if (dealer && __instance == killedLM)
+                //    AddDebug($"{__instance.name} was killed by {dealer.name}");
+
+                if (__instance.gameObject.tag == "Player" && __instance.damageInfo.damage > 0)
+                {
+                    if (type == DamageType.Fire || type == DamageType.Heat)
+                    {
+                        float temp = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
+                        //AddDebug("player fire damage " + (int)temp);
+                        if (UnsavedData.maxTemp < temp)
+                            UnsavedData.maxTemp = Mathf.RoundToInt(temp);
+                    }
+                    else if (type == DamageType.Cold)
+                    {
+                        float temp = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
+                        //AddDebug("player Cold damage " + (int)temp);
+                        if (UnsavedData.minTemp > temp)
+                            UnsavedData.minTemp = Mathf.RoundToInt(temp);
+                    }
+                }
+                else if (WasKilledByPlayer(__instance, dealer))
                 {
                     killedLM = null;
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -898,34 +922,6 @@ namespace Stats_Tracker
                 UnsavedData.timeSlept += timeSlept;
                 bedTimeStart = default;
                 //AddDebug("ExitInUseMode " );
-            }
-        }
-
-        [HarmonyPatch(typeof(LiveMixin), "TakeDamage")]
-        class LiveMixin_TakeDamage_Patch
-        {
-            static void Postfix(LiveMixin __instance, DamageType type)
-            {
-                if (!ConfigMenu.modEnabled.Value)
-                    return;
-
-                if (__instance.gameObject.tag == "Player" && __instance.damageInfo.damage > 0)
-                {
-                    if (type == DamageType.Fire || type == DamageType.Heat)
-                    {
-                        float temp = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
-                        //AddDebug("player fire damage " + (int)temp);
-                        if (UnsavedData.maxTemp < temp)
-                            UnsavedData.maxTemp = Mathf.RoundToInt(temp);
-                    }
-                    else if (type == DamageType.Cold)
-                    {
-                        float temp = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
-                        //AddDebug("player Cold damage " + (int)temp);
-                        if (UnsavedData.minTemp > temp)
-                            UnsavedData.minTemp = Mathf.RoundToInt(temp);
-                    }
-                }
             }
         }
 
