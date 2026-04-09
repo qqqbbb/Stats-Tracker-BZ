@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Stats_Tracker
 {
@@ -112,7 +111,12 @@ namespace Stats_Tracker
 
         public static string GetBiomeName()
         {
-            string name = LargeWorld.main.GetBiome(Player.main.transform.position).ToLower();
+            string name = LargeWorld.main.GetBiome(Player.main.transform.position);
+            if (name == null)
+                return "ST_unknown_biome";
+
+            name = name.ToLower();
+
             if (biomeNames.ContainsKey(name))
                 return biomeNames[name];
             else
